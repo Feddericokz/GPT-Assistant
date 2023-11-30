@@ -14,7 +14,7 @@ public final class GPTAssistantPluginSettings implements PersistentStateComponen
     private GPTAssistantPluginState myState = new GPTAssistantPluginState();
 
     public static class GPTAssistantPluginState {
-        String apiKey = "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";
+        String apiKey = "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";
         String gpt3Model = "gpt-3.5-turbo-1106";
         String gpt4Model = "";
         boolean enableReformatProcessedCode = true;
@@ -86,10 +86,10 @@ public final class GPTAssistantPluginSettings implements PersistentStateComponen
     }
 
     public void setAssistantBehaviorSystemPrompt(String prompt) {
-        myState.seniorDevBehaviorSystemPrompt = prompt;
+        myState.assistantBehaviorSystemPrompt = prompt;
     }
 
     public String getAssistantBehaviorSystemPrompt() {
-        return myState.seniorDevBehaviorSystemPrompt;
+        return myState.assistantBehaviorSystemPrompt;
     }
 }
