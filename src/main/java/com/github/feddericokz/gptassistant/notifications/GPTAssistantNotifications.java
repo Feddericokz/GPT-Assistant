@@ -38,4 +38,14 @@ public class GPTAssistantNotifications {
         return notification;
     }
 
+    public static Notification getUsingDefaultModelNotification(Project project, String version) {
+        Notification notification =  NotificationGroupManager.getInstance()
+                .getNotificationGroup("GPTAssistantNotificationGroup")
+                .createNotification(
+                        "Using default model.",
+                        "Model Version didn't match any known version, using " + version,
+                        NotificationType.INFORMATION);
+        return notification;
+    }
+
 }

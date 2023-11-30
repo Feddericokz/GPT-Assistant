@@ -9,24 +9,27 @@ import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class GPT4ProcessSelection extends GPTProcessSelection {
-    public GPT4ProcessSelection() {
+public class GPT3SeniorDevProcessSelection extends GPTProcessSelection {
+
+    public static final String GPT3_SENIOR_DEV_MODEL_VERSION = "GPT3-SeniorDev";
+
+    public GPT3SeniorDevProcessSelection() {
         super();
     }
 
     @Override
     public String getModelVersion() {
-        return "GPT4";
+        return GPT3_SENIOR_DEV_MODEL_VERSION;
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        if (!isBlank(settingsService.getGpt4Model())) {
+        if (!isBlank(settings.getGpt3Model())) {
             super.actionPerformed(e);
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
             // If its blank we do nothing and let the user know it needs to be configured.
-            Notifications.Bus.notify(GPTAssistantNotifications.getMissingGPT4ModelNotification(project), project);
+            Notifications.Bus.notify(GPTAssistantNotifications.getMissingGPT3ModelNotification(project), project);
         }
     }
 }

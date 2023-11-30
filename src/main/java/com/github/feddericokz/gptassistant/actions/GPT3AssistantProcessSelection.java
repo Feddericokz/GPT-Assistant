@@ -9,19 +9,22 @@ import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class GPT3ProcessSelection extends GPTProcessSelection {
-    public GPT3ProcessSelection() {
+public class GPT3AssistantProcessSelection extends GPTProcessSelection {
+
+    public static final String GPT3_ASSISTANT_MODEL_VERSION = "GPT3-Assistant";
+
+    public GPT3AssistantProcessSelection() {
         super();
     }
 
     @Override
     public String getModelVersion() {
-        return "GPT3";
+        return GPT3_ASSISTANT_MODEL_VERSION;
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        if (!isBlank(settingsService.getGpt3Model())) {
+        if (!isBlank(settings.getGpt3Model())) {
             super.actionPerformed(e);
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);

@@ -1,6 +1,6 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.configuration.GPTAssistantPluginService;
+import com.github.feddericokz.gptassistant.configuration.GPTAssistantPluginSettings;
 import com.github.feddericokz.gptassistant.notifications.GPTAssistantNotifications;
 import com.github.feddericokz.gptassistant.utils.ImportUtils;
 import com.intellij.notification.Notifications;
@@ -25,32 +25,43 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.github.feddericokz.gptassistant.actions.GPT3AssistantProcessSelection.GPT3_ASSISTANT_MODEL_VERSION;
+import static com.github.feddericokz.gptassistant.actions.GPT3SeniorDevProcessSelection.GPT3_SENIOR_DEV_MODEL_VERSION;
+import static com.github.feddericokz.gptassistant.actions.GPT4AssistantProcessSelection.GPT4_ASSISTANT_MODEL_VERSION;
+import static com.github.feddericokz.gptassistant.actions.GPT4SeniorDevProcessSelection.GPT4_SENIOR_DEV_MODEL_VERSION;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class GPTProcessSelection extends AnAction {
 
-    private static final String BEHAVIOR_SYSTEM_PROMPT = "Act as a senior software developer specialized in [SPECIFY PROGRAMMING LANGUAGE]. Your task is to interpret embedded comments in provided code snippets and modify or create code accordingly. Output only the revised or newly written code without any explanations or additional commentary. Assume that each comment in the code snippet is an instruction for a modification or a feature to be implemented. Do not include import statements.";
-    private static final String IMPORTS_USER_PROMPT = "List the fully qualified class names of the classes I need to import to make this code work. Don't output anything else, just a comma separated list."; // TODO: This may only work for Java.
-
-    private static boolean enableReformatSelectedCode = true; // TODO: Should be configurable.
-
-    protected final GPTAssistantPluginService settingsService;
+    protected final GPTAssistantPluginSettings settings;
 
     protected GPTProcessSelection() {
-        this.settingsService = GPTAssistantPluginService.getInstance();
+        this.settings = GPTAssistantPluginSettings.getInstance();
     }
 
-    private static String getSystemPrompt(String language) {
-        return BEHAVIOR_SYSTEM_PROMPT.replace("[SPECIFY PROGRAMMING LANGUAGE]", language); // TODO: SYSTEM_PROMPT Should be done configurable.
+    private String getSystemPrompt(String language) {
+        if (!getModelVersion().contains("Assistant")) {
+            return settings.getSeniorDevBehaviorSystemPrompt().replace("[PROGRAMMING LANGUAGE]", language);
+        } else {
+            return settings.getAssistantBehaviorSystemPrompt();
+        }
+    }
+
+    private String getImportsUserPrompt() {
+        return settings.getImportsUserPrompt();
     }
 
     public abstract String getModelVersion();
+
+    public boolean isEnableReformatSelectedCode() {
+        return settings.getEnableReformatProcessedCode();
+    }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
 
         // Verify it there's an API key
-        if (!isBlank(settingsService.getApiKey())) {
+        if (!isBlank(settings.getApiKey())) {
             // Get selected text.
             String selection = getSelectedText(e);
 
@@ -84,10 +95,10 @@ public abstract class GPTProcessSelection extends AnAction {
         }
     }
 
-    private static void reformatCodeIfEnabled(AnActionEvent e) {
+    private void reformatCodeIfEnabled(AnActionEvent e) {
         Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
 
-        if (enableReformatSelectedCode) {
+        if (isEnableReformatSelectedCode()) {
             reformatSelection(editor);
         }
     }
@@ -148,11 +159,12 @@ public abstract class GPTProcessSelection extends AnAction {
     }
 
     private List<ChatCompletionChoice> getResponseFromOpenIA(String selection, AnActionEvent event) {
+
         // First get the GPT model to use.
-        String gptModel = getGPTModel(); // TODO GPT model could be empty here, need to either not do anything or use a default one.
+        String gptModel = getGPTModel(event.getRequiredData(CommonDataKeys.PROJECT));
 
         // Get the service we'll use to make the request.
-        OpenAiService service = new OpenAiService(settingsService.getApiKey()); // TODO This could be created just once.
+        OpenAiService service = new OpenAiService(settings.getApiKey()); // TODO This could be created just once.
 
         List<ChatMessage> messages = new ArrayList<>();
 
@@ -170,7 +182,7 @@ public abstract class GPTProcessSelection extends AnAction {
         messages.add(choices.get(0).getMessage());
 
         // Ask for import statements that need to be added.
-        messages.add(new ChatMessage(ChatMessageRole.USER.value(), IMPORTS_USER_PROMPT));
+        messages.add(new ChatMessage(ChatMessageRole.USER.value(), getImportsUserPrompt()));
 
         completionRequest = getChatCompletionRequestUsingModel(messages, gptModel); // TODO, Should have config to make second one use less expensive GPT model.
 
@@ -179,14 +191,15 @@ public abstract class GPTProcessSelection extends AnAction {
         return choices;
     }
 
-    private String getGPTModel() {
+    private String getGPTModel(Project project) {
         return switch (getModelVersion()) {
-            case "GPT3" -> settingsService.getGpt3Model();
-            case "GPT4" -> settingsService.getGpt4Model();
-            default ->
-                // Handle the case where the model version is not recognized
-                // You could return a default model, or handle the error as appropriate
-                    ""; // Or handle this case as needed
+            case GPT3_SENIOR_DEV_MODEL_VERSION, GPT3_ASSISTANT_MODEL_VERSION -> settings.getGpt3Model();
+            case GPT4_SENIOR_DEV_MODEL_VERSION, GPT4_ASSISTANT_MODEL_VERSION -> settings.getGpt4Model();
+            default -> {
+                // Hardcoded to GPT3 for now.
+                Notifications.Bus.notify(GPTAssistantNotifications.getUsingDefaultModelNotification(project, "GPT3"), project);
+                yield settings.getGpt3Model();
+            }
         };
     }
 
