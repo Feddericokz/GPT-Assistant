@@ -13,11 +13,9 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last" />
         </group>
 
-        <group id="NLProgramming" text="N.L.Programming" description="Natural language programming" popup="true">
-            <action id="nlp_process_gpt3" class="com.github.feddericokz.gptassistant.actions.GPT3SeniorDevProcessSelection" text="GPT-3: SR Dev Process Selection" description="Make GPT3 process selected code."/>
-            <action id="nlp_process_gpt4" class="com.github.feddericokz.gptassistant.actions.GPT4SeniorDevProcessSelection" text="GPT-4: SR Dev Process Selection" description="Make GPT4 process selected code."/>
-            <action id="nlp_process_assistant_gpt3" class="com.github.feddericokz.gptassistant.actions.GPT3AssistantProcessSelection" text="GPT-3: Assistant Process Selection" description="Make GPT3 Assistant process selected code."/>
-            <action id="nlp_process_assistant_gpt4" class="com.github.feddericokz.gptassistant.actions.GPT4AssistantProcessSelection" text="GPT-4: Assistant Process Selection" description="Make GPT4 Assistant process selected code."/>
+        <group id="SrDev" text="Senior Dev" description="Senior Developer behavior." popup="true">
+            <action id="sr_dev_process_selection_gpt3" class="com.github.feddericokz.gptassistant.actions.SeniorDevGpt3ProcessSelectionAction" text="GPT-3: Process Selected Code" description="Make GPT3 process selected code."/>
+            <action id="sr_dev_process_selection_gpt4" class="com.github.feddericokz.gptassistant.actions.SeniorDevGpt4ProcessSelectionAction" text="GPT-4: Process Selected Code" description="Make GPT4 process selected code."/>
             <add-to-group group-id="GPTAssistantGroup" anchor="last" />
         </group>
     </actions>
@@ -25,8 +23,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable
                 parentId="tools"
-                instance="com.github.feddericokz.gptassistant.configuration.GPTAssistantConfiguration"
-                id="com.github.feddericokz.gptassistant.configuration.GPTAssistantConfiguration"
+                instance="com.github.feddericokz.gptassistant.configuration.AssistantConfiguration"
+                id="com.github.feddericokz.gptassistant.configuration.AssistantConfiguration"
                 displayName="GPT Assistant Settings"/>
     </extensions>
 

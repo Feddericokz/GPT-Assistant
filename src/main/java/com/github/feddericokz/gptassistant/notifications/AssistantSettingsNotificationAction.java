@@ -7,11 +7,11 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenGPTAssistantSettingsNotificationAction extends NotificationAction {
+public class AssistantSettingsNotificationAction extends NotificationAction {
 
     private final Project project;
 
-    public OpenGPTAssistantSettingsNotificationAction(Project project) {
+    public AssistantSettingsNotificationAction(Project project) {
         super("Configure now");
         this.project = project;
     }

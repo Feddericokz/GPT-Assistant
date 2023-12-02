@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class GPTAssistantSettingsComponent {
+public class SettingsComponent {
 
     private final JPanel mainPanel;
 
@@ -16,20 +16,9 @@ public class GPTAssistantSettingsComponent {
     private JBTextField gpt3ModelTextField = new JBTextField();
     private JBTextField gpt4ModelTextField = new JBTextField();
     private JBCheckBox enableReformatProcessedCodeCheckBox = new JBCheckBox();
-    private JTextArea seniorDevBehaviorPromptTextArea = new JTextArea();
-    private JTextArea importsPromptTextArea = new JTextArea();
-    private JTextArea assistantBehaviorSystemPromptTextArea = new JTextArea();
 
-    public GPTAssistantSettingsComponent() {
 
-        seniorDevBehaviorPromptTextArea.setLineWrap(true);
-        seniorDevBehaviorPromptTextArea.setWrapStyleWord(true);
-
-        importsPromptTextArea.setLineWrap(true);
-        importsPromptTextArea.setWrapStyleWord(true);
-
-        assistantBehaviorSystemPromptTextArea.setLineWrap(true);
-        assistantBehaviorSystemPromptTextArea.setWrapStyleWord(true);
+    public SettingsComponent() {
 
         // TODO Need to refactor this to look good.
 
@@ -38,9 +27,6 @@ public class GPTAssistantSettingsComponent {
                 .addLabeledComponent(new JBLabel("GPT3 model:"), gpt3ModelTextField, 1, false)
                 .addLabeledComponent(new JBLabel("GPT4 model:"), gpt4ModelTextField, 1, false)
                 .addLabeledComponent(new JBLabel("Reformat processed code:"), enableReformatProcessedCodeCheckBox, 1, false)
-                .addLabeledComponent(new JBLabel("Senior dev behavior system prompt:"), seniorDevBehaviorPromptTextArea, 1, false)
-                .addLabeledComponent(new JBLabel("Imports User prompt:"), importsPromptTextArea, 1, false)
-                .addLabeledComponent(new JBLabel("Assistant behavior system prompt:"), seniorDevBehaviorPromptTextArea, 1, false)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -86,33 +72,6 @@ public class GPTAssistantSettingsComponent {
 
     public void setEnableReformatProcessedCode(boolean selected) {
         enableReformatProcessedCodeCheckBox.setSelected(selected);
-    }
-
-    @NotNull
-    public String getSeniorDevBehaviorSystemPrompt() {
-        return seniorDevBehaviorPromptTextArea.getText();
-    }
-
-    public void setSeniorDevBehaviorSystemPrompt(@NotNull String newText) {
-        seniorDevBehaviorPromptTextArea.setText(newText);
-    }
-
-    @NotNull
-    public String getImportsUserPrompt() {
-        return importsPromptTextArea.getText();
-    }
-
-    public void setImportsUserPrompt(@NotNull String newText) {
-        importsPromptTextArea.setText(newText);
-    }
-
-    @NotNull
-    public String getAssistantBehaviorSystemPrompt() {
-        return assistantBehaviorSystemPromptTextArea.getText();
-    }
-
-    public void setAssistantBehaviorSystemPrompt(@NotNull String newText) {
-        assistantBehaviorSystemPromptTextArea.setText(newText);
     }
 
 }

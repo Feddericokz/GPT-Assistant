@@ -2,14 +2,12 @@ package com.github.feddericokz.gptassistant.configuration;
 
 import com.intellij.openapi.components.*;
 
-import static com.github.feddericokz.gptassistant.configuration.Prompts.*;
-
 @Service
 @State(
         name = "GPTAssistantSettings",
         storages = {@Storage("GPTAssistantSettings.xml")}
 )
-public final class GPTAssistantPluginSettings implements PersistentStateComponent<GPTAssistantPluginSettings.GPTAssistantPluginState> {
+public final class PluginSettings implements PersistentStateComponent<PluginSettings.GPTAssistantPluginState> {
 
     private GPTAssistantPluginState myState = new GPTAssistantPluginState();
 
@@ -18,13 +16,10 @@ public final class GPTAssistantPluginSettings implements PersistentStateComponen
         String gpt3Model = "gpt-3.5-turbo-1106";
         String gpt4Model = "";
         boolean enableReformatProcessedCode = true;
-        String seniorDevBehaviorSystemPrompt = DEFAULT_SR_DEV_BEHAVIOR_SYSTEM_PROMPT;
-        String assistantBehaviorSystemPrompt =  DEFAULT_AI_ASSISTANT_SYSTEM_PROMPT;
-        String importsUserPrompt = DEFAULT_IMPORTS_USER_PROMPT;
     }
 
-    public static GPTAssistantPluginSettings getInstance() {
-        return ServiceManager.getService(GPTAssistantPluginSettings.class);
+    public static PluginSettings getInstance() {
+        return ServiceManager.getService(PluginSettings.class);
     }
 
     @Override
@@ -69,27 +64,4 @@ public final class GPTAssistantPluginSettings implements PersistentStateComponen
         return this.myState.enableReformatProcessedCode;
     }
 
-    public void setSeniorDevBehaviorSystemPrompt(String prompt) {
-        myState.seniorDevBehaviorSystemPrompt = prompt;
-    }
-
-    public String getSeniorDevBehaviorSystemPrompt() {
-        return myState.seniorDevBehaviorSystemPrompt;
-    }
-
-    public void setImportsUserPrompt(String prompt) {
-        myState.importsUserPrompt = prompt;
-    }
-
-    public String getImportsUserPrompt() {
-        return myState.importsUserPrompt;
-    }
-
-    public void setAssistantBehaviorSystemPrompt(String prompt) {
-        myState.assistantBehaviorSystemPrompt = prompt;
-    }
-
-    public String getAssistantBehaviorSystemPrompt() {
-        return myState.assistantBehaviorSystemPrompt;
-    }
 }

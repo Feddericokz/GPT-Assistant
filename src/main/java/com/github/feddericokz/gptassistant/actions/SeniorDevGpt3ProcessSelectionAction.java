@@ -1,25 +1,20 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.notifications.GPTAssistantNotifications;
+import com.github.feddericokz.gptassistant.Constants;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class GPT3AssistantProcessSelection extends GPTProcessSelection {
-
-    public static final String GPT3_ASSISTANT_MODEL_VERSION = "GPT3-Assistant";
-
-    public GPT3AssistantProcessSelection() {
-        super();
-    }
+public class SeniorDevGpt3ProcessSelectionAction extends SeniorDevProcessSelectionAction {
 
     @Override
-    public String getModelVersion() {
-        return GPT3_ASSISTANT_MODEL_VERSION;
+    public String getModelToUse() {
+        return Constants.GPT3;
     }
 
     @Override
@@ -29,7 +24,8 @@ public class GPT3AssistantProcessSelection extends GPTProcessSelection {
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
             // If its blank we do nothing and let the user know it needs to be configured.
-            Notifications.Bus.notify(GPTAssistantNotifications.getMissingGPT3ModelNotification(project), project);
+            Notifications.Bus.notify(getMissingGPT3ModelNotification(project), project);
         }
     }
+
 }

@@ -1,35 +1,31 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.notifications.GPTAssistantNotifications;
+import com.github.feddericokz.gptassistant.Constants;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class GPT3SeniorDevProcessSelection extends GPTProcessSelection {
-
-    public static final String GPT3_SENIOR_DEV_MODEL_VERSION = "GPT3-SeniorDev";
-
-    public GPT3SeniorDevProcessSelection() {
-        super();
-    }
+public class SeniorDevGpt4ProcessSelectionAction extends SeniorDevProcessSelectionAction {
 
     @Override
-    public String getModelVersion() {
-        return GPT3_SENIOR_DEV_MODEL_VERSION;
+    public String getModelToUse() {
+        return Constants.GPT4;
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        if (!isBlank(settings.getGpt3Model())) {
+        if (!isBlank(settings.getGpt4Model())) {
             super.actionPerformed(e);
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
             // If its blank we do nothing and let the user know it needs to be configured.
-            Notifications.Bus.notify(GPTAssistantNotifications.getMissingGPT3ModelNotification(project), project);
+            Notifications.Bus.notify(getMissingGPT4ModelNotification(project), project);
         }
     }
+
 }
