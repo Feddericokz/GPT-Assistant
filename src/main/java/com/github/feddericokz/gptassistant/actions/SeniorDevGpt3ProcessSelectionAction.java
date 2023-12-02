@@ -7,7 +7,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingGPT3ModelNotification;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class SeniorDevGpt3ProcessSelectionAction extends SeniorDevProcessSelectionAction {

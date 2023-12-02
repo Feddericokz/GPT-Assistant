@@ -29,7 +29,7 @@ import java.util.Objects;
 import static com.github.feddericokz.gptassistant.ActionEventUtils.getSelectedText;
 import static com.github.feddericokz.gptassistant.Constants.GPT3;
 import static com.github.feddericokz.gptassistant.Constants.GPT4;
-import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class ProcessSelectionAction  extends AnAction {
@@ -54,7 +54,6 @@ public abstract class ProcessSelectionAction  extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         if (!isBlank(settings.getApiKey())) {
-
             // Get selected text.
             String selection = getSelectedText(e);
 
