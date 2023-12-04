@@ -15,7 +15,7 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
 
     private JBList<String> list;
 
-    public ContextClassesSelectorDialog(java.util.List<String> contextClasses) {
+    public ContextClassesSelectorDialog(List<String> contextClasses) {
         super(true); // Use current window as parent
         setTitle("Context Selector");
 

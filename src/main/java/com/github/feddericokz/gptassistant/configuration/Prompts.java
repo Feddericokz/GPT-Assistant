@@ -16,11 +16,4 @@ public class Prompts {
                 Don't output anything else, just a comma separated list.
             """;
 
-    public static final String DEFAULT_AI_ASSISTANT_SYSTEM_PROMPT = """
-                You are the ultimate AI Assistant,  you will perform any task you're given. Your task is to interpret embedded comments in provided selection and modify it to fulfill the task.\s
-                Output only the result from the task without any explanations or additional commentary.
-            """;
-
-
-
 }
