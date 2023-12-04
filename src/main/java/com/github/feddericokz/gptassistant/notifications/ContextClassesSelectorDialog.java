@@ -5,25 +5,19 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ContextClassesSelectorDialog extends DialogWrapper {
+    private CheckboxList list;
 
-    private JBList<String> list;
-
-    public ContextClassesSelectorDialog(List<String> contextClasses) {
-        super(true); // Use current window as parent
+    public ContextClassesSelectorDialog(List<CheckboxListItem> contextItems) {
+        super(true);
         setTitle("Context Selector");
-
-        // Initialize list
-        list = new JBList<>(contextClasses.toArray(new String[0]));
-        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
-        init(); // This is needed to initialize the dialog
+        list = new CheckboxList(contextItems);
+        init();
     }
 
     @Nullable
@@ -34,7 +28,15 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
         return panel;
     }
 
-    public List<String> getSelectedValues() {
-        return list.getSelectedValuesList();
+    public List<CheckboxListItem> getSelectedValues() {
+        ListModel<CheckboxListItem> model = list.getModel();
+        List<CheckboxListItem> selectedItems = new ArrayList<>();
+        for (int i = 0; i < model.getSize(); i++) {
+            CheckboxListItem item = model.getElementAt(i);
+            if (item.isSelected()) {
+                selectedItems.add(item);
+            }
+        }
+        return selectedItems;
     }
 }

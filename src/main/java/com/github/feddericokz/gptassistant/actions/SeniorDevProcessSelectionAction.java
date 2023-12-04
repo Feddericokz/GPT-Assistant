@@ -2,6 +2,7 @@ package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.RecursiveClassFinder;
 import com.github.feddericokz.gptassistant.behaviors.SeniorDevBehaviorPattern;
+import com.github.feddericokz.gptassistant.notifications.CheckboxListItem;
 import com.github.feddericokz.gptassistant.notifications.ContextClassesSelectorDialog;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -87,18 +88,24 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
     }
 
     public static List<String> getUserChoosenContextClasses(String currentClassName, List<String> contextClasses) {
-        // TODO For now I just add it to the list so I can choose it, but they should be shown differently in the dialog.
+
+        // TODO For now we add to a single list, but goal is to have different categories, like classes from selection, classes from file, search any class.
         contextClasses.add(currentClassName);
 
-        ContextClassesSelectorDialog contextSelector = new ContextClassesSelectorDialog(contextClasses);
+        List<CheckboxListItem> items = contextClasses.stream()
+                .map(CheckboxListItem::new)
+                .collect(Collectors.toList());
 
-        contextSelector.show();
+        ContextClassesSelectorDialog dialog = new ContextClassesSelectorDialog(items);
+        dialog.show();
 
-        if (contextSelector.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-            return contextSelector.getSelectedValues();
+        if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+            return dialog.getSelectedValues().stream()
+                    .map(CheckboxListItem::toString)
+                    .collect(Collectors.toList());
         } else {
             // Handle cancellation
-            return Collections.emptyList(); // or an appropriate response
+            return null;
         }
     }
 
