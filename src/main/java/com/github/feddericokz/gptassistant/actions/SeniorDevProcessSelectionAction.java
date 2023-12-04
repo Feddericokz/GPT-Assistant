@@ -2,13 +2,20 @@ package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.RecursiveClassFinder;
 import com.github.feddericokz.gptassistant.behaviors.SeniorDevBehaviorPattern;
+import com.github.feddericokz.gptassistant.notifications.ContextClassesSelectorDialog;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
@@ -16,7 +23,9 @@ import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 
+import java.lang.IllegalStateException;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.ActionEventUtils.getFileLanguage;
@@ -32,17 +41,68 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
 
         String language = getFileLanguage(e);
 
-        // Get all the files we want to send for context.
-        List<String> contextClasses = new ArrayList<>(List.of(getCurrentClass(e)));
-        contextClasses.addAll(classesFromSelection(e));
+        // Need to get the name of the current class.
+        String currentClassName = getCurrentClassName(e);
 
-        // TODO User should be able to choose which classes are sent as context.
-        // TODO Also user should be able to choose classes found in the current class.
+        // Need to get the names of the context classes from selection.
+        List<String> selectionContextClasses = getSelectionContextClasses(e);
 
-        return getMessagesForRequest(language, selection, contextClasses);
+        // TODO get the context classes from the file.
+
+        // Let the user choose which classes to send for context.
+        List<String> contextClasses = getUserChoosenContextClasses(currentClassName, selectionContextClasses);
+
+        // Get the actual content of the classes.
+        List<String> classContents = getClassContentFromNames(contextClasses, e.getProject());
+
+        return getMessagesForRequest(language, selection, classContents);
     }
 
-    public List<String> classesFromSelection(AnActionEvent e) {
+    List<String> getClassContentFromNames (List<String> classNames, Project project){
+        JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+        GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+
+        return classNames.stream()
+                .map(className -> javaPsiFacade.findClass(className, scope))
+                .filter(Objects::nonNull)
+                .map(PsiClass::getContainingFile)
+                .filter(Objects::nonNull)
+                .map(PsiFile::getText)
+                .collect(Collectors.toList());
+    }
+
+    private String getCurrentClassName(AnActionEvent e) {
+        PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            throw new IllegalStateException("psiFile is null");
+        }
+        Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (editor == null) {
+            throw new IllegalStateException("Editor is null");
+        }
+        int offset = editor.getCaretModel().getOffset();
+        PsiElement elementAt = psiFile.findElementAt(offset);
+        PsiClass containingClass = PsiTreeUtil.getParentOfType(elementAt, PsiClass.class);
+        return containingClass != null ? containingClass.getQualifiedName() : null;
+    }
+
+    public static List<String> getUserChoosenContextClasses(String currentClassName, List<String> contextClasses) {
+        // TODO For now I just add it to the list so I can choose it, but they should be shown differently in the dialog.
+        contextClasses.add(currentClassName);
+
+        ContextClassesSelectorDialog contextSelector = new ContextClassesSelectorDialog(contextClasses);
+
+        contextSelector.show();
+
+        if (contextSelector.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+            return contextSelector.getSelectedValues();
+        } else {
+            // Handle cancellation
+            return Collections.emptyList(); // or an appropriate response
+        }
+    }
+
+    public List<String> getSelectionContextClasses(AnActionEvent e) {
 
         // Get the current project
         Project project = e.getProject();
@@ -83,45 +143,9 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         // Resolve classes from psiElements.
         Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
 
-        // TODO Should refactor this to be inside of RecursiveClassFinder.
-        // Try to resolve classes from field references.
-        Arrays.stream(psiElements).forEach(psiElement -> {
-            PsiReference[] references = psiElement.getReferences();
-            Arrays.stream(references).forEach(psiReference -> {
-                if (psiReference.resolve() instanceof PsiField psiField) {
-                    PsiType fieldType = psiField.getType();
-                    PsiClass typeClass = PsiUtil.resolveClassInType(fieldType);
-                    if (typeClass != null) {
-                        psiClasses.add(typeClass);
-                    }
-                }
-            });
-        });
-
         return psiClasses.stream()
-                .map(PsiElement::getText)
+                .map(PsiClass::getQualifiedName)
                 .collect(Collectors.toList());
-    }
-
-    private String getCurrentClass(AnActionEvent e) {
-        // Get the current project
-        Project project = e.getProject();
-        if (project == null) {
-            throw new IllegalStateException("Project is null");
-        }
-
-        // Get the current editor
-        Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
-        if (editor == null) {
-            throw new IllegalStateException("Editor is null");
-        }
-
-        // Access the Document object
-        Document document = editor.getDocument();
-
-        // Now you can work with the document or psiFile
-        // For example, getting the entire text of the file
-        return document.getText();
     }
 
     private List<ChatMessage> getMessagesForRequest(String language, String selection, List<String> currentFileContent) {

@@ -22,6 +22,8 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +48,9 @@ public abstract class ProcessSelectionAction  extends AnAction {
 
     protected OpenAiService getOpenAiService() {
         if (openAiService == null) {
-            openAiService = new OpenAiService(settings.getApiKey()); // TODO What if we change API key?
+            // TODO What if we change API key?
+            // TODO Make timeout configurable.
+            openAiService = new OpenAiService(settings.getApiKey(), Duration.ofMinutes(5));
         }
         return openAiService;
     }
@@ -62,7 +66,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
 
             // Create and make request to OpenIA
             ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
-            List<ChatCompletionChoice> choices = getOpenAiService().createChatCompletion(completionRequest).getChoices();
+            List<ChatCompletionChoice> choices = makeOpenAiRequest(completionRequest);
             ChatMessage gptResponse = getGptResponseFromChoices(choices);
             String updateSelection = gptResponse.getContent();
 
@@ -86,6 +90,28 @@ public abstract class ProcessSelectionAction  extends AnAction {
             // If its blank we do nothing and let the user know it needs to be configured.
             Notifications.Bus.notify(getMissingApiKeyNotification(project), project);
         }
+    }
+
+    public List<ChatCompletionChoice> makeOpenAiRequest(ChatCompletionRequest completionRequest) {
+        int maxRetries = getConfiguredMaxRetries(); // Assuming there's a method to get configured max retries
+        int retries = 0;
+
+        while (true) {
+            try {
+                return getOpenAiService().createChatCompletion(completionRequest).getChoices();
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof SocketTimeoutException && retries < maxRetries) {
+                    retries++;
+                    // TODO Log this and wait before retrying.
+                } else {
+                    throw e; // Re-throw if it's not a SocketTimeoutException or we've exceeded the number of retries
+                }
+            }
+        }
+    }
+
+    private int getConfiguredMaxRetries() {
+        return 3; // TODO Make this configurable.
     }
 
     private void reformatCodeIfEnabled(AnActionEvent e) {
