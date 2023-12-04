@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.notifications;
+package com.github.feddericokz.gptassistant.ui.components;
 
 import com.intellij.ui.components.JBList;
 
@@ -8,12 +8,14 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 class CheckboxList extends JBList<CheckboxListItem> {
+
     public CheckboxList(List<CheckboxListItem> items) {
         super(new DefaultListModel<>());
         DefaultListModel<CheckboxListItem> model = (DefaultListModel<CheckboxListItem>) getModel();
         items.forEach(model::addElement);
 
         setCellRenderer(new CheckboxListRenderer());
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -26,4 +28,5 @@ class CheckboxList extends JBList<CheckboxListItem> {
             }
         });
     }
+
 }

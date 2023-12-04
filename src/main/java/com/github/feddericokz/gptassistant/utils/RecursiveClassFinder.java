@@ -1,14 +1,8 @@
-package com.github.feddericokz.gptassistant;
+package com.github.feddericokz.gptassistant.utils;
 
 import com.intellij.psi.*;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiUtil;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,6 +38,5 @@ public class RecursiveClassFinder {
             }
         }
     }
-
 
 }

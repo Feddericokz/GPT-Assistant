@@ -1,6 +1,6 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.ActionEventUtils;
+import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
 import com.github.feddericokz.gptassistant.behaviors.BehaviorPattern;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.intellij.notification.Notifications;
@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static com.github.feddericokz.gptassistant.ActionEventUtils.getSelectedText;
+import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getSelectedText;
 import static com.github.feddericokz.gptassistant.Constants.GPT3;
 import static com.github.feddericokz.gptassistant.Constants.GPT4;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
@@ -151,7 +151,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
 
     protected abstract void performFollowUpOperations(AnActionEvent e, List<ChatCompletionChoice> choices);
 
-    public abstract Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages);
+    protected abstract Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages);
 
     protected static ChatMessage getGptResponseFromChoices(List<ChatCompletionChoice> choices) {
         // We'll only have 1 choice I assume.

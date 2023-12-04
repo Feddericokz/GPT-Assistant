@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant;
+package com.github.feddericokz.gptassistant.utils;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

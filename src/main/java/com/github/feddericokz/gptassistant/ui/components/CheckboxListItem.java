@@ -1,7 +1,13 @@
-package com.github.feddericokz.gptassistant.notifications;
+package com.github.feddericokz.gptassistant.ui.components;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class CheckboxListItem {
-    private String label;
+
+    private final String label;
     private boolean isSelected;
 
     public CheckboxListItem(String label) {
@@ -9,16 +15,9 @@ public class CheckboxListItem {
         this.isSelected = false;
     }
 
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    public void setSelected(boolean isSelected) {
-        this.isSelected = isSelected;
-    }
-
     @Override
     public String toString() {
         return label;
     }
+
 }

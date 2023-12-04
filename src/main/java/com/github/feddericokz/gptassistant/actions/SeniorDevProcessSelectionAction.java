@@ -1,9 +1,9 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.RecursiveClassFinder;
+import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.github.feddericokz.gptassistant.behaviors.SeniorDevBehaviorPattern;
-import com.github.feddericokz.gptassistant.notifications.CheckboxListItem;
-import com.github.feddericokz.gptassistant.notifications.ContextClassesSelectorDialog;
+import com.github.feddericokz.gptassistant.ui.components.CheckboxListItem;
+import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorDialog;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -13,23 +13,17 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 
-import java.lang.IllegalStateException;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.github.feddericokz.gptassistant.ActionEventUtils.getFileLanguage;
+import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
 
 public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAction {
 
@@ -50,8 +44,12 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
 
         // TODO get the context classes from the file.
 
+        Map<String, List<String>> contextClassesMap = new HashMap<>();
+        contextClassesMap.put("Current class:", Collections.singletonList(currentClassName));
+        contextClassesMap.put("Selection context classes:", selectionContextClasses);
+
         // Let the user choose which classes to send for context.
-        List<String> contextClasses = getUserChoosenContextClasses(currentClassName, selectionContextClasses);
+        List<String> contextClasses = getUserChoosenContextClasses(contextClassesMap);
 
         // Get the actual content of the classes.
         List<String> classContents = getClassContentFromNames(contextClasses, e.getProject());
@@ -59,7 +57,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         return getMessagesForRequest(language, selection, classContents);
     }
 
-    List<String> getClassContentFromNames (List<String> classNames, Project project){
+    private List<String> getClassContentFromNames (List<String> classNames, Project project){
         JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
         GlobalSearchScope scope = GlobalSearchScope.allScope(project);
 
@@ -87,29 +85,30 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         return containingClass != null ? containingClass.getQualifiedName() : null;
     }
 
-    public static List<String> getUserChoosenContextClasses(String currentClassName, List<String> contextClasses) {
+    public static List<String> getUserChoosenContextClasses(Map<String, List<String>> contextClassesMap) {
+        List<List<CheckboxListItem>> itemsLists = new ArrayList<>();
+        List<String> titles = new ArrayList<>();
 
-        // TODO For now we add to a single list, but goal is to have different categories, like classes from selection, classes from file, search any class.
-        contextClasses.add(currentClassName);
+        for (Map.Entry<String, List<String>> entry : contextClassesMap.entrySet()) {
+            itemsLists.add(entry.getValue().stream().map(CheckboxListItem::new).collect(Collectors.toList()));
+            titles.add(entry.getKey());
+        }
 
-        List<CheckboxListItem> items = contextClasses.stream()
-                .map(CheckboxListItem::new)
-                .collect(Collectors.toList());
-
-        ContextClassesSelectorDialog dialog = new ContextClassesSelectorDialog(items);
+        ContextClassesSelectorDialog dialog = new ContextClassesSelectorDialog(itemsLists, titles);
         dialog.show();
 
         if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-            return dialog.getSelectedValues().stream()
-                    .map(CheckboxListItem::toString)
+            List<List<String>> selectedValues = dialog.getSelectedValues();
+            return selectedValues.stream()
+                    .flatMap(Collection::stream)
                     .collect(Collectors.toList());
         } else {
             // Handle cancellation
-            return null;
+            return Collections.emptyList();
         }
     }
 
-    public List<String> getSelectionContextClasses(AnActionEvent e) {
+    private List<String> getSelectionContextClasses(AnActionEvent e) {
 
         // Get the current project
         Project project = e.getProject();
@@ -184,7 +183,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
     }
 
     @Override
-    public Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages) {
+    protected Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages) {
 
         List<ChatCompletionChoice> completionChoices = new ArrayList<>();
 
@@ -195,7 +194,6 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
 
             // TODO, Should have config to make follow up one use less expensive GPT model.
             ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
-
             ChatCompletionChoice completionChoice = makeRequestAndGetResponse(completionRequest);
 
             // Will be storing responses on handlers to process them later.
@@ -213,6 +211,6 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
     }
 
     private ChatCompletionChoice makeRequestAndGetResponse(ChatCompletionRequest completionRequest) {
-        return getOpenAiService().createChatCompletion(completionRequest).getChoices().get(0);
+        return makeOpenAiRequest(completionRequest).get(0);
     }
 }
