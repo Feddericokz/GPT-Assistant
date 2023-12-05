@@ -1,8 +1,10 @@
 package com.github.feddericokz.gptassistant.actions;
 
+import com.github.feddericokz.gptassistant.ui.components.ToolWindowLogger;
 import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
 import com.github.feddericokz.gptassistant.behaviors.BehaviorPattern;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
+import com.github.feddericokz.gptassistant.utils.Logger;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,12 +40,14 @@ public abstract class ProcessSelectionAction  extends AnAction {
 
     protected final PluginSettings settings;
     protected final BehaviorPattern behaviorPattern;
+    private final Logger logger;
 
     private OpenAiService openAiService;
 
     public ProcessSelectionAction(BehaviorPattern behaviorPattern) {
         this.settings = PluginSettings.getInstance();
         this.behaviorPattern = behaviorPattern;
+        this.logger = new ToolWindowLogger(); // For just create a ToolWindowLogger
     }
 
     protected OpenAiService getOpenAiService() {

@@ -12,7 +12,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     private GPTAssistantPluginState myState = new GPTAssistantPluginState();
 
     public static class GPTAssistantPluginState {
-        String apiKey = "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";
+        String apiKey = "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";
         String gpt3Model = "gpt-3.5-turbo-1106";
         String gpt4Model = "gpt-4-1106-preview";
         boolean enableReformatProcessedCode = true;

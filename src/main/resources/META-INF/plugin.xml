@@ -26,6 +26,10 @@
                 instance="com.github.feddericokz.gptassistant.configuration.AssistantConfiguration"
                 id="com.github.feddericokz.gptassistant.configuration.AssistantConfiguration"
                 displayName="GPT Assistant Settings"/>
+
+        <toolWindow id="GPTAssistant"
+                    anchor="bottom"
+                    factoryClass="com.github.feddericokz.gptassistant.ui.components.GPTAssistantToolWindowFactory"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
