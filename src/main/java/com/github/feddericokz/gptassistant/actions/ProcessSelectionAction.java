@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
 import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getSelectedText;
 import static com.github.feddericokz.gptassistant.Constants.GPT3;
 import static com.github.feddericokz.gptassistant.Constants.GPT4;
@@ -47,7 +48,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
     public ProcessSelectionAction(BehaviorPattern behaviorPattern) {
         this.settings = PluginSettings.getInstance();
         this.behaviorPattern = behaviorPattern;
-        this.logger = new ToolWindowLogger(); // For just create a ToolWindowLogger
+        this.logger = new ToolWindowLogger(); // For now just create a ToolWindowLogger
     }
 
     protected OpenAiService getOpenAiService() {
@@ -62,42 +63,61 @@ public abstract class ProcessSelectionAction  extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         if (!isBlank(settings.getApiKey())) {
-            // Get selected text.
+
             String selection = getSelectedText(e);
+            logger.log("Selection acquired: " + selection, "DEBUG");
 
-            // Get first set of messages.
-            List<ChatMessage> messages = getMessagesForRequest(e, selection);
+            try {
+                List<ChatMessage> messages = getMessagesForRequest(e, selection);
 
-            // Create and make request to OpenIA
-            ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
-            List<ChatCompletionChoice> choices = makeOpenAiRequest(completionRequest);
-            ChatMessage gptResponse = getGptResponseFromChoices(choices);
-            String updateSelection = gptResponse.getContent();
+                logger.log("Initial messages obtained for the request.", "INFO");
 
-            // Update conversation with GPT response.
-            messages.add(gptResponse);
+                ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
+                List<ChatCompletionChoice> choices = makeOpenAiRequest(completionRequest);
+                logger.log("Request made to OpenAI and responses received.", "INFO");
 
-            // Make all follow-up requests before updating anything.
-            choices.addAll(performFolowUpRequests(e, messages));
+                ChatMessage gptResponse = getGptResponseFromChoices(choices);
+                String updateSelection = sanitizeSelection(gptResponse.getContent(), e);
+                logger.log("GPT-3 response received and prepared for update: " + updateSelection, "DEBUG");
 
-            // Update the selection.
-            ActionEventUtils.updateSelection(e, updateSelection);
+                messages.add(gptResponse);
 
-            // Do follow up operations if any.
-            performFollowUpOperations(e, choices);
+                choices.addAll(performFolowUpRequests(e, messages));
+                logger.log("All follow-up requests performed.", "INFO");
 
-            // Reformat
-            reformatCodeIfEnabled(e);
+                ActionEventUtils.updateSelection(e, updateSelection);
+                logger.log("Editor selection updated.", "INFO");
+
+                performFollowUpOperations(e, choices);
+                logger.log("Follow-up operations performed.", "INFO");
+
+                reformatCodeIfEnabled(e);
+            } catch (UserCancelledException ex) {
+                logger.log("User cancelled the action.", "INFO");
+            }
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
 
-            // If its blank we do nothing and let the user know it needs to be configured.
             Notifications.Bus.notify(getMissingApiKeyNotification(project), project);
+            logger.log("API key missing, notification sent.", "WARN");
         }
     }
 
+    private String sanitizeSelection(String content, AnActionEvent e) {
+        String language = getFileLanguage(e).toLowerCase();
+        String codeBlockTag = "```" + language;
+        if (content.startsWith(codeBlockTag)) {
+            logger.log("Response is being sanitized..", "DEBUG");
+            content = content.substring(codeBlockTag.length());
+            if (content.endsWith("```")) {
+                content = content.substring(0, content.length() - 3);
+            }
+        }
+        return content;
+    }
+
     public List<ChatCompletionChoice> makeOpenAiRequest(ChatCompletionRequest completionRequest) {
-        int maxRetries = getConfiguredMaxRetries(); // Assuming there's a method to get configured max retries
+        int maxRetries = getConfiguredMaxRetries();
         int retries = 0;
 
         while (true) {
@@ -106,9 +126,16 @@ public abstract class ProcessSelectionAction  extends AnAction {
             } catch (RuntimeException e) {
                 if (e.getCause() instanceof SocketTimeoutException && retries < maxRetries) {
                     retries++;
-                    // TODO Log this and wait before retrying.
+                    logger.log("Socket timeout exception occurred. Retrying... Retry count: " + retries, "ERROR");
+                    try {
+                        logger.log("Waiting 1 second before retrying...", "INFO");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Thread interrupted while waiting to retry", ex);
+                    }
                 } else {
-                    throw e; // Re-throw if it's not a SocketTimeoutException or we've exceeded the number of retries
+                    throw e;
                 }
             }
         }
@@ -162,7 +189,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
         return choices.get(0).getMessage();
     }
 
-    public abstract List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection);
+    public abstract List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
 
     public abstract String getModelToUse();
 

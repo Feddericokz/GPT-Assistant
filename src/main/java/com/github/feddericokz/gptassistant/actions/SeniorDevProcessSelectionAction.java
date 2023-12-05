@@ -7,12 +7,17 @@ import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorD
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
@@ -21,6 +26,8 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 
 import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
@@ -32,7 +39,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
     }
 
     @Override
-    public List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection) {
+    public List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
 
         String language = getFileLanguage(e);
 
@@ -42,11 +49,13 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         // Need to get the names of the context classes from selection.
         List<String> selectionContextClasses = getSelectionContextClasses(e);
 
-        // TODO get the context classes from the file.
+        // Get the names of the context classes of the current file.
+        List<String> fileContextClasses = getFileContextClasses(e);
 
         Map<String, List<String>> contextClassesMap = new HashMap<>();
         contextClassesMap.put("Current class:", Collections.singletonList(currentClassName));
         contextClassesMap.put("Selection context classes:", selectionContextClasses);
+        contextClassesMap.put("File context classes:", fileContextClasses);
 
         // Let the user choose which classes to send for context.
         List<String> contextClasses = getUserChoosenContextClasses(contextClassesMap);
@@ -85,7 +94,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         return containingClass != null ? containingClass.getQualifiedName() : null;
     }
 
-    public static List<String> getUserChoosenContextClasses(Map<String, List<String>> contextClassesMap) {
+    public static List<String> getUserChoosenContextClasses(Map<String, List<String>> contextClassesMap) throws UserCancelledException {
         List<List<CheckboxListItem>> itemsLists = new ArrayList<>();
         List<String> titles = new ArrayList<>();
 
@@ -103,8 +112,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
         } else {
-            // Handle cancellation
-            return Collections.emptyList();
+            throw new UserCancelledException();
         }
     }
 
@@ -153,6 +161,37 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
                 .map(PsiClass::getQualifiedName)
                 .collect(Collectors.toList());
     }
+
+
+    private List<String> getFileContextClasses(AnActionEvent e) {
+
+        Project project = e.getProject();
+        if (project == null) {
+            throw new IllegalStateException("Project is null");
+        }
+
+        Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+        if (editor == null) {
+            throw new IllegalStateException("Editor is null");
+        }
+
+        Document document = editor.getDocument();
+
+        PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document);
+        if (psiFile == null) {
+            throw new IllegalStateException("psiFile is null");
+        }
+
+        PsiElement[] psiElements = PsiTreeUtil.collectElements(psiFile, element -> true);
+
+        // Resolve classes from psiElements.
+        Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
+
+        return psiClasses.stream()
+                .map(PsiClass::getQualifiedName)
+                .collect(Collectors.toList());
+    }
+
 
     private List<ChatMessage> getMessagesForRequest(String language, String selection, List<String> currentFileContent) {
         List<ChatMessage> contextMessages = currentFileContent.stream()
