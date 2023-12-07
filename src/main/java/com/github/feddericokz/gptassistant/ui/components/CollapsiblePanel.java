@@ -1,5 +1,6 @@
 package com.github.feddericokz.gptassistant.ui.components;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -27,10 +28,12 @@ class CollapsiblePanel extends JBPanel {
         titleLabel = new JBLabel(title);
         titleLabel.setOpaque(true);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Title padding
+        titleLabel.setIcon(isCollapsed ? AllIcons.General.ArrowDown : AllIcons.General.ArrowRight);
         titleLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 toggleListVisibility();
+                titleLabel.setIcon(isCollapsed ? AllIcons.General.ArrowDown : AllIcons.General.ArrowRight);
             }
         });
 
