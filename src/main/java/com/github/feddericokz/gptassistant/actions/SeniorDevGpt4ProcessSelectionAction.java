@@ -10,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingModelNotification;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class SeniorDevGpt4ProcessSelectionAction extends SeniorDevProcessSelectionAction {
+public class SeniorDevGpt4ProcessSelectionAction extends SoftwareDevelopmentAssistantProcessSelectionAction {
+
+    // TODO This should be gone, should be replaced with a window to choose the assistant to use or create one.
 
     @Override
     public String getModelToUse() {

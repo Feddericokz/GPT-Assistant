@@ -1,7 +1,7 @@
 package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
-import com.github.feddericokz.gptassistant.behaviors.SeniorDevBehaviorPattern;
+import com.github.feddericokz.gptassistant.behaviors.SoftwareDevelopmentAssistant;
 import com.github.feddericokz.gptassistant.ui.components.CheckboxListItem;
 import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorDialog;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -20,29 +20,44 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.theokanning.openai.completion.chat.ChatCompletionChoice;
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.completion.chat.ChatMessageRole;
+import com.theokanning.openai.assistants.Assistant;
+import com.theokanning.openai.assistants.AssistantRequest;
 
 import java.util.*;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
 
-public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAction {
+public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends ProcessSelectionAction {
 
-    public SeniorDevProcessSelectionAction() {
-        super(new SeniorDevBehaviorPattern());
+    public SoftwareDevelopmentAssistantProcessSelectionAction() {
+        super(new SoftwareDevelopmentAssistant());
     }
 
     @Override
-    public List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
+    public void createAssistantIfNotExists() {
+        if (settings.getAssistantId() == null || settings.getAssistantId().isBlank()) { // TODO I don't like this.
 
-        String language = getFileLanguage(e);
+            logger.log("Creating a new assistant as none currently exists.", "INFO");
 
+            AssistantRequest assistantRequest = new AssistantRequest();
+            assistantRequest.setName("GPT Software development assistant.");
+            assistantRequest.setDescription("A GPT powered coding assistant that understands your code.");
+            assistantRequest.setInstructions(assistantBehavior.getSystemPrompt());
+            assistantRequest.setModel(getGPTModel()); // TODO This will create the assistant with the first model it uses.. Bug.
+
+            Assistant assistant = getOpenAiService().createAssistant(assistantRequest);
+
+            settings.setAssistantId(assistant.getId());
+            logger.log("New assistant created with ID: " + assistant.getId(), "DEBUG");
+        } else {
+            logger.log("Assistant already exists with ID: " + settings.getAssistantId(), "DEBUG");
+        }
+    }
+
+    @Override
+    public List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
         // Need to get the name of the current class.
         String currentClassName = getCurrentClassName(e);
 
@@ -63,7 +78,7 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         // Get the actual content of the classes.
         List<String> classContents = getClassContentFromNames(contextClasses, e.getProject());
 
-        return getMessagesForRequest(language, selection, classContents);
+        return getXmlTaggedMessagesForRequest(selection, classContents);
     }
 
     private List<String> getClassContentFromNames (List<String> classNames, Project project){
@@ -193,16 +208,16 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
     }
 
 
-    private List<ChatMessage> getMessagesForRequest(String language, String selection, List<String> currentFileContent) {
-        List<ChatMessage> contextMessages = currentFileContent.stream()
-                .map(fileContent ->
-                        new ChatMessage(ChatMessageRole.USER.value(), xmlTagText(fileContent, "context")))
+    private List<String> getXmlTaggedMessagesForRequest(String selection, List<String> currentFileContent) {
+        List<String> contextMessages = currentFileContent.stream()
+                .map(fileContent -> xmlTagText(fileContent, "context"))
                 .toList();
-        List<ChatMessage> requestMessages = new ArrayList<>(Arrays.asList(
-                new ChatMessage(ChatMessageRole.SYSTEM.value(), getSystemPrompt(language)),
-                new ChatMessage(ChatMessageRole.USER.value(), xmlTagText(selection, "selection"))
-        ));
+
+        List<String> requestMessages
+                = new ArrayList<>(Collections.singletonList(xmlTagText(selection, "selection")));
+
         requestMessages.addAll(contextMessages);
+
         return requestMessages;
     }
 
@@ -210,46 +225,16 @@ public abstract class SeniorDevProcessSelectionAction extends ProcessSelectionAc
         return String.format("<%s>%n%s%n<%1$s/>", tag, text);
     }
 
-    private String getSystemPrompt(String language) {
-        return behaviorPattern.getSystemPrompt().getPromptString().replace("[PROGRAMMING LANGUAGE]", language);
+    @Override
+    protected void performFollowUpRequests(AnActionEvent e, List<String> assistantResponse) {
+        //
     }
 
     @Override
-    protected void performFollowUpOperations(AnActionEvent e, List<ChatCompletionChoice> choices) {
-        behaviorPattern.getFollowUpPrompts().forEach(((prompt, followUpHandler) -> {
-            followUpHandler.handleResponse(e);
+    protected void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse) {
+        assistantBehavior.getFollowUpHandlers().forEach((followUpHandler -> {
+            followUpHandler.handleResponse(e, assistantResponse);
         }));
     }
 
-    @Override
-    protected Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages) {
-
-        List<ChatCompletionChoice> completionChoices = new ArrayList<>();
-
-        this.behaviorPattern.getFollowUpPrompts().forEach((prompt, followUpHandler) -> {
-
-            // Create message with follow-up prompt.
-            messages.add(new ChatMessage(ChatMessageRole.USER.value(), prompt.getPromptString()));
-
-            // TODO, Should have config to make follow up one use less expensive GPT model.
-            ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
-            ChatCompletionChoice completionChoice = makeRequestAndGetResponse(completionRequest);
-
-            // Will be storing responses on handlers to process them later.
-            followUpHandler.storeResponse(completionChoice);
-
-            // This method returns a list of choices, building it to keep the method contract.
-            completionChoices.add(completionChoice);
-
-            // Add GPT response to messages to keep context.
-            messages.add(completionChoice.getMessage());
-
-        });
-
-        return completionChoices;
-    }
-
-    private ChatCompletionChoice makeRequestAndGetResponse(ChatCompletionRequest completionRequest) {
-        return makeOpenAiRequest(completionRequest).get(0);
-    }
 }

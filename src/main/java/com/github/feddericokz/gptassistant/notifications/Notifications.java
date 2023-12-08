@@ -18,6 +18,7 @@ public class Notifications {
         return notification;
     }
 
+    // TODO might not need this anymore, if we replace specific actions with configurable assistants per model.
     public static Notification getMissingModelNotification(Project project, String modelVersion) {
         String title = "Missing " + modelVersion + " model setting.";
         String content = "Please configure the exact " + modelVersion + " model to use in settings.";

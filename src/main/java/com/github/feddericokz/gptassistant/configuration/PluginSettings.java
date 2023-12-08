@@ -1,6 +1,11 @@
 package com.github.feddericokz.gptassistant.configuration;
 
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 
 @Service
 @State(
@@ -12,10 +17,11 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     private GPTAssistantPluginState myState = new GPTAssistantPluginState();
 
     public static class GPTAssistantPluginState {
-        String apiKey = "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";
+        String apiKey = "";
         String gpt3Model = "gpt-3.5-turbo-1106";
         String gpt4Model = "gpt-4-1106-preview";
         boolean enableReformatProcessedCode = true;
+        String assistantId = "";
     }
 
     public static PluginSettings getInstance() {
@@ -62,6 +68,14 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     public boolean getEnableReformatProcessedCode() {
         return this.myState.enableReformatProcessedCode;
+    }
+
+    public String getAssistantId() {
+        return myState.assistantId;
+    }
+
+    public void setAssistantId(String id) {
+        this.myState.assistantId = id;
     }
 
 }

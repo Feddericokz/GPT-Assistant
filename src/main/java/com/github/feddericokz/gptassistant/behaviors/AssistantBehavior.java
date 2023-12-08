@@ -2,18 +2,18 @@ package com.github.feddericokz.gptassistant.behaviors;
 
 import lombok.*;
 
-import java.util.Map;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-public class BehaviorPattern {
+public class AssistantBehavior {
 
-    private Prompt systemPrompt;
+    private String systemPrompt;
 
     @Singular
-    private Map<Prompt, FollowUpHandler> followUpPrompts;
+    private List<FollowUpHandler> followUpHandlers;
 
 }

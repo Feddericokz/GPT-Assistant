@@ -1,9 +1,9 @@
 package com.github.feddericokz.gptassistant.actions;
 
+import com.github.feddericokz.gptassistant.behaviors.AssistantBehavior;
+import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.ToolWindowLogger;
 import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
-import com.github.feddericokz.gptassistant.behaviors.BehaviorPattern;
-import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.utils.Logger;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -20,34 +20,37 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.messages.Message;
+import com.theokanning.openai.messages.MessageRequest;
+import com.theokanning.openai.runs.CreateThreadAndRunRequest;
+import com.theokanning.openai.runs.Run;
 import com.theokanning.openai.service.OpenAiService;
+import com.theokanning.openai.threads.ThreadRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
-import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getSelectedText;
 import static com.github.feddericokz.gptassistant.Constants.GPT3;
 import static com.github.feddericokz.gptassistant.Constants.GPT4;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
+import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getSelectedText;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class ProcessSelectionAction  extends AnAction {
 
     protected final PluginSettings settings;
-    protected final BehaviorPattern behaviorPattern;
-    private final Logger logger;
+    protected final AssistantBehavior assistantBehavior;
+    protected final Logger logger;
 
     private OpenAiService openAiService;
 
-    public ProcessSelectionAction(BehaviorPattern behaviorPattern) {
+    public ProcessSelectionAction(AssistantBehavior behaviorPattern) {
         this.settings = PluginSettings.getInstance();
-        this.behaviorPattern = behaviorPattern;
+        this.assistantBehavior = behaviorPattern;
         this.logger = new ToolWindowLogger(); // For now just create a ToolWindowLogger
     }
 
@@ -64,32 +67,28 @@ public abstract class ProcessSelectionAction  extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         if (!isBlank(settings.getApiKey())) {
 
+            createAssistantIfNotExists();
+
             String selection = getSelectedText(e);
             logger.log("Selection acquired: " + selection, "DEBUG");
 
             try {
-                List<ChatMessage> messages = getMessagesForRequest(e, selection);
-
+                List<String> stringMessages = getMessagesForRequest(e, selection);
                 logger.log("Initial messages obtained for the request.", "INFO");
 
-                ChatCompletionRequest completionRequest = getChatCompletionRequestUsingModel(messages, getGPTModel());
-                List<ChatCompletionChoice> choices = makeOpenAiRequest(completionRequest);
+                Run assistantRun = createAssistantThreadAndRun(stringMessages);
+
+                List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
                 logger.log("Request made to OpenAI and responses received.", "INFO");
 
-                ChatMessage gptResponse = getGptResponseFromChoices(choices);
-                String updateSelection = sanitizeSelection(gptResponse.getContent(), e);
-                logger.log("GPT-3 response received and prepared for update: " + updateSelection, "DEBUG");
+                logger.log("Performing follow up requests if needed.", "INFO");
+                performFollowUpRequests(e, assistantResponse);
 
-                messages.add(gptResponse);
+                ActionEventUtils.updateSelection(e, getUpdateSelection(assistantResponse));
+                logger.log("Selection updated.", "INFO");
 
-                choices.addAll(performFolowUpRequests(e, messages));
-                logger.log("All follow-up requests performed.", "INFO");
-
-                ActionEventUtils.updateSelection(e, updateSelection);
-                logger.log("Editor selection updated.", "INFO");
-
-                performFollowUpOperations(e, choices);
-                logger.log("Follow-up operations performed.", "INFO");
+                logger.log("Performing follow up operations.", "INFO");
+                performFollowUpOperations(e, assistantResponse);
 
                 reformatCodeIfEnabled(e);
             } catch (UserCancelledException ex) {
@@ -97,24 +96,75 @@ public abstract class ProcessSelectionAction  extends AnAction {
             }
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
-
             Notifications.Bus.notify(getMissingApiKeyNotification(project), project);
-            logger.log("API key missing, notification sent.", "WARN");
         }
     }
 
-    private String sanitizeSelection(String content, AnActionEvent e) {
-        String language = getFileLanguage(e).toLowerCase();
-        String codeBlockTag = "```" + language;
-        if (content.startsWith(codeBlockTag)) {
-            logger.log("Response is being sanitized..", "DEBUG");
-            content = content.substring(codeBlockTag.length());
-            if (content.endsWith("```")) {
-                content = content.substring(0, content.length() - 3);
+    private String getUpdateSelection(List<String> assistantResponse) {
+        for (String response : assistantResponse) {
+            if (response.contains("<response>")) {
+                int start = response.indexOf("<response>") + "<response>".length();
+                int end = response.indexOf("</response>");
+                return response.substring(start, end);
             }
         }
-        return content;
+        return null;
     }
+
+    private List<String> waitUntilRunCompletesAndGetAssistantResponse(Run assistantRun) {
+        Run run;
+        while (true) {
+            run = getOpenAiService().retrieveRun(assistantRun.getThreadId(), assistantRun.getId());
+            if ("completed".equals(run.getStatus()) || "failed".equals(run.getStatus())) {
+                break;
+            }
+            try {
+                java.lang.Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                java.lang.Thread.currentThread().interrupt();
+                throw new RuntimeException("The thread waiting for the run to complete was interrupted", e);
+            }
+        }
+
+        if ("failed".equals(run.getStatus())) {
+            throw new RuntimeException("The run failed to complete. Last error: " + run.getLastError());
+        }
+
+        List<Message> messageList = getOpenAiService().listMessages(run.getThreadId()).getData();
+
+        return messageList
+                .stream()
+                .filter(m -> "assistant".equals(m.getRole()))
+                // We're expecting a single content per message.
+                .map(message -> message.getContent().get(0).getText().getValue())
+                .collect(Collectors.toList());
+    }
+
+    private Run createAssistantThreadAndRun(List<String> stringMessages) {
+        if (stringMessages == null || stringMessages.isEmpty()) {
+            throw new IllegalArgumentException("stringMessages is null or empty");
+        }
+
+        List<MessageRequest> messageRequestList = stringMessages.stream()
+                .map(msg -> MessageRequest.builder().content(msg).build())
+                .collect(Collectors.toList());
+
+        ThreadRequest threadRequest = ThreadRequest.builder()
+                .messages(messageRequestList)
+                .build();
+
+        CreateThreadAndRunRequest createThreadAndRunRequest = CreateThreadAndRunRequest.builder()
+                .assistantId(settings.getAssistantId())
+                .thread(threadRequest)
+                .build();
+
+        Run run = getOpenAiService().createThreadAndRun(createThreadAndRunRequest);
+        logger.log("Run created with id: " + run.getId(), "INFO");
+
+        return run;
+    }
+
+    public abstract void createAssistantIfNotExists();
 
     public List<ChatCompletionChoice> makeOpenAiRequest(ChatCompletionRequest completionRequest) {
         int maxRetries = getConfiguredMaxRetries();
@@ -129,9 +179,9 @@ public abstract class ProcessSelectionAction  extends AnAction {
                     logger.log("Socket timeout exception occurred. Retrying... Retry count: " + retries, "ERROR");
                     try {
                         logger.log("Waiting 1 second before retrying...", "INFO");
-                        Thread.sleep(1000);
+                        java.lang.Thread.sleep(1000);
                     } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
+                        java.lang.Thread.currentThread().interrupt();
                         throw new RuntimeException("Thread interrupted while waiting to retry", ex);
                     }
                 } else {
@@ -180,16 +230,11 @@ public abstract class ProcessSelectionAction  extends AnAction {
         );
     }
 
-    protected abstract void performFollowUpOperations(AnActionEvent e, List<ChatCompletionChoice> choices);
+    protected abstract void performFollowUpRequests(AnActionEvent e, List<String> assistantResponse);
 
-    protected abstract Collection<? extends ChatCompletionChoice> performFolowUpRequests(AnActionEvent e, List<ChatMessage> messages);
+    protected abstract void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse);
 
-    protected static ChatMessage getGptResponseFromChoices(List<ChatCompletionChoice> choices) {
-        // We'll only have 1 choice I assume.
-        return choices.get(0).getMessage();
-    }
-
-    public abstract List<ChatMessage> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
+    public abstract List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
 
     public abstract String getModelToUse();
 
@@ -201,13 +246,6 @@ public abstract class ProcessSelectionAction  extends AnAction {
                 throw new IllegalStateException("Shouldn't reach this statement, something is not implemented right.");
             }
         };
-    }
-
-    protected ChatCompletionRequest getChatCompletionRequestUsingModel(List<ChatMessage> messages, String model) {
-        return ChatCompletionRequest.builder()
-                .messages(messages)
-                .model(model)
-                .build();
     }
 
 }
