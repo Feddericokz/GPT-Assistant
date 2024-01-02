@@ -32,8 +32,6 @@ public class AssistantConfiguration implements Configurable {
     public boolean isModified() {
         PluginSettings settingsService = PluginSettings.getInstance();
         boolean modified = !settingsService.getApiKey().equals(settingsComponent.getApiKey());
-        modified = modified || !settingsService.getGpt3Model().equals(settingsComponent.getGpt3Model());
-        modified = modified || !settingsService.getGpt4Model().equals(settingsComponent.getGpt4Model());
         modified = modified || !settingsService.getEnableReformatProcessedCode() == settingsComponent.getEnableReformatProcessedCode();
         return modified;
     }
@@ -42,8 +40,6 @@ public class AssistantConfiguration implements Configurable {
     public void apply() throws ConfigurationException {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsService.setApiKey(settingsComponent.getApiKey());
-        settingsService.setGpt3Model(settingsComponent.getGpt3Model());
-        settingsService.setGpt4Model(settingsComponent.getGpt4Model());
         settingsService.setEnableReformatProcessedCode(settingsComponent.getEnableReformatProcessedCode());
     }
 
@@ -51,8 +47,6 @@ public class AssistantConfiguration implements Configurable {
     public void reset() {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsComponent.setApiKey(settingsService.getApiKey());
-        settingsComponent.setGpt3Model(settingsService.getGpt3Model());
-        settingsComponent.setGpt4Model(settingsService.getGpt4Model());
         settingsComponent.setEnableReformatProcessedCode(settingsService.getEnableReformatProcessedCode());
     }
 

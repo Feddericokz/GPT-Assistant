@@ -35,7 +35,7 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
         super(new SoftwareDevelopmentAssistant());
     }
 
-    @Override
+    /*@Override
     public void createAssistantIfNotExists() {
         if (settings.getAssistantId() == null || settings.getAssistantId().isBlank()) { // TODO I don't like this.
 
@@ -49,12 +49,13 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
 
             Assistant assistant = getOpenAiService().createAssistant(assistantRequest);
 
-            settings.setAssistantId(assistant.getId());
+            //settings.setAssistantId(assistant.getId());
+
             logger.log("New assistant created with ID: " + assistant.getId(), "DEBUG");
         } else {
             logger.log("Assistant already exists with ID: " + settings.getAssistantId(), "DEBUG");
         }
-    }
+    }*/
 
     @Override
     public List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
