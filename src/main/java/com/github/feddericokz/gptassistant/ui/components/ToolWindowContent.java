@@ -3,6 +3,7 @@ package com.github.feddericokz.gptassistant.ui.components;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
+
 import javax.swing.*;
 import java.awt.*;
 

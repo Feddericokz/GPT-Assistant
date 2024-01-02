@@ -17,7 +17,7 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
 
         collapsiblePanels = new ArrayList<>();
         for (int i = 0; i < contextItemsList.size(); i++) {
-            collapsiblePanels.add(new CollapsiblePanel(titles.get(i), new CheckboxList(contextItemsList.get(i))));
+            collapsiblePanels.add(new CollapsiblePanel(titles.get(i), new CheckboxList(contextItemsList.get(i)), false));
         }
 
         init();
@@ -38,9 +38,9 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
 
     public List<List<String>> getSelectedValues() {
         return collapsiblePanels.stream()
-                .map(CollapsiblePanel::getCheckboxList)
+                .map(CollapsiblePanel::getComponent)
                 .map(list -> {
-                    ListModel<CheckboxListItem> model = list.getModel();
+                    ListModel<CheckboxListItem> model = ((CheckboxList) list).getModel();
                     List<String> selectedItems = new ArrayList<>();
                     for (int i = 0; i < model.getSize(); i++) {
                         CheckboxListItem item = model.getElementAt(i);

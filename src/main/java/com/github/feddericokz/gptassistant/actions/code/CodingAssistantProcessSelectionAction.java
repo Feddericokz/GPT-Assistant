@@ -1,59 +1,113 @@
-package com.github.feddericokz.gptassistant.actions;
+package com.github.feddericokz.gptassistant.actions.code;
 
-import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
-import com.github.feddericokz.gptassistant.behaviors.SoftwareDevelopmentAssistant;
+import com.github.feddericokz.gptassistant.actions.ProcessSelectionAction;
+import com.github.feddericokz.gptassistant.actions.UserCancelledException;
 import com.github.feddericokz.gptassistant.ui.components.CheckboxListItem;
 import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorDialog;
+import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
+import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.theokanning.openai.assistants.Assistant;
-import com.theokanning.openai.assistants.AssistantRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getFileLanguage;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
-public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends ProcessSelectionAction {
+public class CodingAssistantProcessSelectionAction extends ProcessSelectionAction {
 
-    public SoftwareDevelopmentAssistantProcessSelectionAction() {
-        super(new SoftwareDevelopmentAssistant());
+    public CodingAssistantProcessSelectionAction() {
     }
 
     @Override
-    public void createAssistantIfNotExists() {
-        if (settings.getAssistantId() == null || settings.getAssistantId().isBlank()) { // TODO I don't like this.
+    public void doWorkWithResponse(@NotNull AnActionEvent e, List<String> assistantResponse) {
+        logger.log("Updating selection...", "INFO");
+        ActionEventUtils.updateSelection(e, getUpdateSelection(assistantResponse));
 
-            logger.log("Creating a new assistant as none currently exists.", "INFO");
+        logger.log("Performing follow up operations...", "INFO");
+        performFollowUpOperations(e, assistantResponse);
 
-            AssistantRequest assistantRequest = new AssistantRequest();
-            assistantRequest.setName("GPT Software development assistant.");
-            assistantRequest.setDescription("A GPT powered coding assistant that understands your code.");
-            assistantRequest.setInstructions(assistantBehavior.getSystemPrompt());
-            assistantRequest.setModel(getGPTModel()); // TODO This will create the assistant with the first model it uses.. Bug.
+        reformatCodeIfEnabled(e);
+    }
 
-            Assistant assistant = getOpenAiService().createAssistant(assistantRequest);
+    private void reformatCodeIfEnabled(AnActionEvent e) {
+        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
 
-            settings.setAssistantId(assistant.getId());
-            logger.log("New assistant created with ID: " + assistant.getId(), "DEBUG");
-        } else {
-            logger.log("Assistant already exists with ID: " + settings.getAssistantId(), "DEBUG");
+        if (isEnableReformatSelectedCode()) {
+            logger.log("Re-formatting code...", "INFO");
+            reformatSelection(editor);
         }
+    }
+
+    private static void reformatSelection(Editor editor) {
+        // Get needed objects to work with.
+        Document document = editor.getDocument();
+        Project project = Objects.requireNonNull(editor.getProject());
+        SelectionModel selection = editor.getSelectionModel();
+        PsiFile file = Objects.requireNonNull(PsiDocumentManager.getInstance(project).getPsiFile(document));
+
+        // Ensure the document is committed
+        PsiDocumentManager.getInstance(project)
+                .commitDocument(document);
+
+        // Define the range to reformat
+        TextRange rangeToReformat = new TextRange(selection.getSelectionStart(), selection.getSelectionEnd());
+
+        // Get the CodeStyleManager instance
+        CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
+
+        // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
+        WriteCommandAction.runWriteCommandAction(project, () ->
+                codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
+        );
+    }
+
+    protected void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse) {
+        List<String> importStatements = getImportsList(assistantResponse);
+
+        // TODO If there's no import statements, we can probably recover by making another request.
+
+        // Update imports if needed.
+        if (!importStatements.isEmpty()) {
+            importStatements.forEach(importStatement -> {
+                ImportUtils.addImportStatement(e, importStatement);
+            });
+        }
+    }
+
+    private static List<String> getImportsList(List<String> assistantResponse) {
+        String imports = assistantResponse.stream()
+                .filter(response -> response.contains("<imports>"))
+                .map(response -> response.substring(response.indexOf("<imports>") + "<imports>".length(), response.indexOf("</imports>")))
+                .findFirst()
+                .orElse("");
+        return Arrays.asList(imports.split(","));
+    }
+
+    private String getUpdateSelection(List<String> assistantResponse) {
+        for (String response : assistantResponse) {
+            if (response.contains("<response>")) {
+                int start = response.indexOf("<response>") + "<response>".length();
+                int end = response.indexOf("</response>");
+                return response.substring(start, end);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -132,7 +186,6 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
     }
 
     private List<String> getSelectionContextClasses(AnActionEvent e) {
-
         // Get the current project
         Project project = e.getProject();
         if (project == null) {
@@ -149,7 +202,8 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
 
         // Check if there is a selection
         if (!selectionModel.hasSelection()) {
-            // TODO throw message that something must be selected.
+            Notifications.Bus.notify(getWarningNotification("Empty selection.",
+                    "Something needs to be selected in order to do work."));
         }
 
         // Get the start and end points of the selection
@@ -179,7 +233,6 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
 
 
     private List<String> getFileContextClasses(AnActionEvent e) {
-
         Project project = e.getProject();
         if (project == null) {
             throw new IllegalStateException("Project is null");
@@ -223,18 +276,6 @@ public abstract class SoftwareDevelopmentAssistantProcessSelectionAction extends
 
     private String xmlTagText(String text, String tag) {
         return String.format("<%s>%n%s%n<%1$s/>", tag, text);
-    }
-
-    @Override
-    protected void performFollowUpRequests(AnActionEvent e, List<String> assistantResponse) {
-        //
-    }
-
-    @Override
-    protected void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse) {
-        assistantBehavior.getFollowUpHandlers().forEach((followUpHandler -> {
-            followUpHandler.handleResponse(e, assistantResponse);
-        }));
     }
 
 }

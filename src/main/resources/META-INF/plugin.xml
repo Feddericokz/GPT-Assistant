@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.feddericokz.gptassistant</id>
-    <name>GPT-Assistant Template</name>
+    <name>GPT-Assistant</name>
     <vendor>feddericokz</vendor>
 
     <depends>com.intellij.modules.platform</depends>
@@ -13,9 +13,9 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last" />
         </group>
 
-        <group id="SrDev" text="Senior Dev" description="Senior Developer behavior." popup="true">
-            <action id="sr_dev_process_selection_gpt3" class="com.github.feddericokz.gptassistant.actions.SeniorDevGpt3ProcessSelectionAction" text="GPT-3: Process Selected Code" description="Make GPT3 process selected code."/>
-            <action id="sr_dev_process_selection_gpt4" class="com.github.feddericokz.gptassistant.actions.SeniorDevGpt4ProcessSelectionAction" text="GPT-4: Process Selected Code" description="Make GPT4 process selected code."/>
+        <group id="code_assistant" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
+            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.code.CodingAssistantProcessSelectionAction"
+                    text="GPT: Process Selected Code" description="Make GPT process selected code."/>
             <add-to-group group-id="GPTAssistantGroup" anchor="last" />
         </group>
     </actions>

@@ -3,29 +3,40 @@ package com.github.feddericokz.gptassistant.ui.components;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
-import javax.swing.BorderFactory;
-import java.awt.BorderLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 @Getter
-class CollapsiblePanel extends JBPanel {
+public class CollapsiblePanel extends JPanel {
 
-    private final JBLabel titleLabel;
-    private final CheckboxList checkboxList;
-    private boolean isCollapsed = false;
+    private final JComponent component;
+    private boolean isCollapsed;
 
-    public CollapsiblePanel(String title, CheckboxList checkboxList) {
-        this.checkboxList = checkboxList;
+    public CollapsiblePanel(String title, JComponent component, boolean startCollapsed) {
+        // Saving reference to be able to use a Getter.
+        this.component = component;
+        this.isCollapsed = startCollapsed;
 
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY)); // Panel border
+        setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
 
-        titleLabel = new JBLabel(title);
+        JComponent titleLabel = getTitleLabel(title);
+
+        add(titleLabel, BorderLayout.PAGE_START);
+        add(component, BorderLayout.CENTER);
+
+        updateListVisibility();
+    }
+
+    @NotNull
+    private JBLabel getTitleLabel(String title) {
+        JBLabel titleLabel = new JBLabel(title);
         titleLabel.setOpaque(true);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Title padding
         titleLabel.setIcon(isCollapsed ? AllIcons.General.ArrowDown : AllIcons.General.ArrowRight);
@@ -36,13 +47,7 @@ class CollapsiblePanel extends JBPanel {
                 titleLabel.setIcon(isCollapsed ? AllIcons.General.ArrowDown : AllIcons.General.ArrowRight);
             }
         });
-
-        add(titleLabel, BorderLayout.PAGE_START);
-        JBScrollPane scrollPane = new JBScrollPane(checkboxList);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(5,15,5,5));
-        add(scrollPane, BorderLayout.CENTER);
-
-        updateListVisibility();
+        return titleLabel;
     }
 
     private void toggleListVisibility() {

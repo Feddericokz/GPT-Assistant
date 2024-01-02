@@ -1,25 +1,14 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.behaviors.AssistantBehavior;
+import com.github.feddericokz.gptassistant.configuration.OpenAIServiceCache;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.ToolWindowLogger;
-import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
 import com.github.feddericokz.gptassistant.utils.Logger;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.theokanning.openai.completion.chat.ChatCompletionChoice;
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.messages.Message;
 import com.theokanning.openai.messages.MessageRequest;
 import com.theokanning.openai.runs.CreateThreadAndRunRequest;
@@ -28,71 +17,57 @@ import com.theokanning.openai.service.OpenAiService;
 import com.theokanning.openai.threads.ThreadRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.SocketTimeoutException;
-import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.github.feddericokz.gptassistant.Constants.GPT3;
-import static com.github.feddericokz.gptassistant.Constants.GPT4;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingAssistantNotification;
 import static com.github.feddericokz.gptassistant.utils.ActionEventUtils.getSelectedText;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public abstract class ProcessSelectionAction  extends AnAction {
+public abstract class ProcessSelectionAction extends AnAction {
 
     protected final PluginSettings settings;
-    protected final AssistantBehavior assistantBehavior;
     protected final Logger logger;
 
-    private OpenAiService openAiService;
+    //private OpenAiService openAiService;
 
-    public ProcessSelectionAction(AssistantBehavior behaviorPattern) {
+    public ProcessSelectionAction() {
         this.settings = PluginSettings.getInstance();
-        this.assistantBehavior = behaviorPattern;
         this.logger = new ToolWindowLogger(); // For now just create a ToolWindowLogger
     }
 
     protected OpenAiService getOpenAiService() {
-        if (openAiService == null) {
-            // TODO What if we change API key?
-            // TODO Make timeout configurable.
-            openAiService = new OpenAiService(settings.getApiKey(), Duration.ofMinutes(5));
-        }
-        return openAiService;
+        return OpenAIServiceCache.getInstance().getService();
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         if (!isBlank(settings.getApiKey())) {
 
-            createAssistantIfNotExists();
+            if (isAssistantSelected(e)) {
 
-            String selection = getSelectedText(e);
-            logger.log("Selection acquired: " + selection, "DEBUG");
+                String selection = getSelectedText(e);
+                logger.log("Selection acquired: " + selection, "DEBUG");
 
-            try {
-                List<String> stringMessages = getMessagesForRequest(e, selection);
-                logger.log("Initial messages obtained for the request.", "INFO");
+                try {
+                    List<String> stringMessages = getMessagesForRequest(e, selection);
+                    logger.log("Initial messages obtained for the request.", "INFO");
 
-                Run assistantRun = createAssistantThreadAndRun(stringMessages);
+                    Run assistantRun = createAssistantThreadAndRun(stringMessages);
 
-                List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
-                logger.log("Request made to OpenAI and responses received.", "INFO");
+                    List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
+                    logger.log("Request made to OpenAI and responses received.", "INFO");
 
-                logger.log("Performing follow up requests if needed.", "INFO");
-                performFollowUpRequests(e, assistantResponse);
+                    // Now I need to hand this off to the process selection implementation.
 
-                ActionEventUtils.updateSelection(e, getUpdateSelection(assistantResponse));
-                logger.log("Selection updated.", "INFO");
-
-                logger.log("Performing follow up operations.", "INFO");
-                performFollowUpOperations(e, assistantResponse);
-
-                reformatCodeIfEnabled(e);
-            } catch (UserCancelledException ex) {
-                logger.log("User cancelled the action.", "INFO");
+                    doWorkWithResponse(e, assistantResponse);
+                } catch (UserCancelledException ex) {
+                    logger.log("User cancelled the action.", "INFO");
+                }
+            } else {
+                logger.log("There's no selected assistant, not processing. " +
+                        "Please select an assistant in the settings panel.", "INFO");
             }
         } else {
             Project project = e.getRequiredData(CommonDataKeys.PROJECT);
@@ -100,16 +75,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
         }
     }
 
-    private String getUpdateSelection(List<String> assistantResponse) {
-        for (String response : assistantResponse) {
-            if (response.contains("<response>")) {
-                int start = response.indexOf("<response>") + "<response>".length();
-                int end = response.indexOf("</response>");
-                return response.substring(start, end);
-            }
-        }
-        return null;
-    }
+    public abstract void doWorkWithResponse(@NotNull AnActionEvent e, List<String> assistantResponse);
 
     private List<String> waitUntilRunCompletesAndGetAssistantResponse(Run assistantRun) {
         Run run;
@@ -154,7 +120,7 @@ public abstract class ProcessSelectionAction  extends AnAction {
                 .build();
 
         CreateThreadAndRunRequest createThreadAndRunRequest = CreateThreadAndRunRequest.builder()
-                .assistantId(settings.getAssistantId())
+                .assistantId(settings.getSelectedAssistant().getId())
                 .thread(threadRequest)
                 .build();
 
@@ -164,88 +130,19 @@ public abstract class ProcessSelectionAction  extends AnAction {
         return run;
     }
 
-    public abstract void createAssistantIfNotExists();
-
-    public List<ChatCompletionChoice> makeOpenAiRequest(ChatCompletionRequest completionRequest) {
-        int maxRetries = getConfiguredMaxRetries();
-        int retries = 0;
-
-        while (true) {
-            try {
-                return getOpenAiService().createChatCompletion(completionRequest).getChoices();
-            } catch (RuntimeException e) {
-                if (e.getCause() instanceof SocketTimeoutException && retries < maxRetries) {
-                    retries++;
-                    logger.log("Socket timeout exception occurred. Retrying... Retry count: " + retries, "ERROR");
-                    try {
-                        logger.log("Waiting 1 second before retrying...", "INFO");
-                        java.lang.Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        java.lang.Thread.currentThread().interrupt();
-                        throw new RuntimeException("Thread interrupted while waiting to retry", ex);
-                    }
-                } else {
-                    throw e;
-                }
-            }
+    public boolean isAssistantSelected(@NotNull AnActionEvent e) {
+        if (settings.getSelectedAssistant() == null) {
+            Project project = e.getRequiredData(CommonDataKeys.PROJECT);
+            Notifications.Bus.notify(getMissingAssistantNotification(project), project);
+            return false;
         }
-    }
-
-    private int getConfiguredMaxRetries() {
-        return 3; // TODO Make this configurable.
-    }
-
-    private void reformatCodeIfEnabled(AnActionEvent e) {
-        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-
-        if (isEnableReformatSelectedCode()) {
-            reformatSelection(editor);
-        }
+        return true;
     }
 
     public boolean isEnableReformatSelectedCode() {
         return settings.getEnableReformatProcessedCode();
     }
 
-    private static void reformatSelection(Editor editor) {
-        // Get needed objects to work with.
-        Document document = editor.getDocument();
-        Project project = Objects.requireNonNull(editor.getProject());
-        SelectionModel selection = editor.getSelectionModel();
-        PsiFile file = Objects.requireNonNull(PsiDocumentManager.getInstance(project).getPsiFile(document));
-
-        // Ensure the document is committed
-        PsiDocumentManager.getInstance(project)
-                .commitDocument(document);
-
-        // Define the range to reformat
-        TextRange rangeToReformat = new TextRange(selection.getSelectionStart(), selection.getSelectionEnd());
-
-        // Get the CodeStyleManager instance
-        CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
-
-        // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
-        WriteCommandAction.runWriteCommandAction(project, () ->
-                codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
-        );
-    }
-
-    protected abstract void performFollowUpRequests(AnActionEvent e, List<String> assistantResponse);
-
-    protected abstract void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse);
-
     public abstract List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
-
-    public abstract String getModelToUse();
-
-    protected String getGPTModel() {
-        return switch (getModelToUse()) {
-            case GPT3 -> settings.getGpt3Model();
-            case GPT4 -> settings.getGpt4Model();
-            default -> {
-                throw new IllegalStateException("Shouldn't reach this statement, something is not implemented right.");
-            }
-        };
-    }
 
 }

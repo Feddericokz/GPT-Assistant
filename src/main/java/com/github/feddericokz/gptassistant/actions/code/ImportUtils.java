@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.utils;
+package com.github.feddericokz.gptassistant.actions.code;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
@@ -17,7 +17,7 @@ public class ImportUtils {
             return;
         }
 
-        LanguageHandler handler = getLanguageHandler(psiFile.getLanguage());
+        ImportLanguageHandler handler = getLanguageHandler(psiFile.getLanguage());
         if (handler != null) {
             handler.addImport(psiFile, importIdentifier);
         }
@@ -32,12 +32,12 @@ public class ImportUtils {
         addImportStatement(project, editor, importIdentifier);
     }
 
-    private static LanguageHandler getLanguageHandler(Language language) {
+    private static ImportLanguageHandler getLanguageHandler(Language language) {
         // Return the appropriate handler based on the language
         if (language.is(JavaLanguage.INSTANCE)) {
-            return new JavaLanguageHandler();
+            return new JavaImportLanguageHandler();
         }
-        // TODO ... handlers for other languages
+        // ... handlers for other languages
         return null;
     }
 

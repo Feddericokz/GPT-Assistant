@@ -1,5 +1,6 @@
-package com.github.feddericokz.gptassistant.utils;
+package com.github.feddericokz.gptassistant.actions.code;
 
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -7,8 +8,11 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.Nullable;
 
-class JavaLanguageHandler implements LanguageHandler {
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
+public class JavaImportLanguageHandler implements ImportLanguageHandler {
+
+    @Override
     public void addImport(PsiFile file, String importIdentifier) {
         if (!(file instanceof PsiJavaFile javaFile)) {
             // Exit if file is not Java.
@@ -26,7 +30,12 @@ class JavaLanguageHandler implements LanguageHandler {
 
         // Get the import statement we want to add.
         PsiImportStatement importStatement = getPsiImportStatement(importIdentifier, javaFile.getProject());
-        if (importStatement == null) return; // TODO: Handle this gracefully. Class not found in the project scope
+        if (importStatement == null) {
+            Notifications.Bus.notify(getWarningNotification("Import class error.", String.format("It seems " +
+                            "that GPT assistant tried to import a class that's not found in the project: %s. You'll " +
+                            "need to add this class in order to use provided code.", importIdentifier)));
+            return;
+        }
 
         // Add the import statement to the file
         WriteCommandAction.runWriteCommandAction(javaFile.getProject(), () -> {

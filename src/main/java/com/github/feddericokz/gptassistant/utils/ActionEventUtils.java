@@ -6,7 +6,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
-import com.intellij.psi.PsiFile;
 
 public class ActionEventUtils {
 
@@ -19,7 +18,7 @@ public class ActionEventUtils {
         return selectionModel.getSelectedText();
     }
 
-    public static String getFileLanguage(AnActionEvent e) {
+    /*public static String getFileLanguage(AnActionEvent e) {
         // Get the PsiFile for the current context
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
 
@@ -29,7 +28,7 @@ public class ActionEventUtils {
         }
 
         throw new IllegalStateException("All the files should have a language even if it's text, you should not be seeing this message.");
-    }
+    }*/
 
     public static void updateSelection(AnActionEvent e, String updateSelection) {
         // Get needed objects to work with.

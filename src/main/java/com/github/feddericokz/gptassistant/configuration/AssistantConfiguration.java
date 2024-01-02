@@ -1,18 +1,54 @@
 package com.github.feddericokz.gptassistant.configuration;
 
+import com.github.feddericokz.gptassistant.ui.components.SettingsComponent;
+import com.github.feddericokz.gptassistant.utils.AssistantUtils;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
+import com.theokanning.openai.ListSearchParameters;
+import com.theokanning.openai.OpenAiResponse;
+import com.theokanning.openai.assistants.Assistant;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
+
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getErrorNotification;
 
 public class AssistantConfiguration implements Configurable {
 
     private SettingsComponent settingsComponent;
 
     public AssistantConfiguration() {
-        // ..
+        PluginSettings settingsService = PluginSettings.getInstance();
+        if (!StringUtils.isBlank(settingsService.getApiKey()) // Cannot make requests with no API keys.
+                && (settingsService.getAvailableAssistants() == null
+                    || settingsService.getAvailableAssistants().isEmpty())) {
+
+            try {
+                // First should query for existing assistants.
+                List<Assistant> existingAssistants = queryForExistingAssistants();
+
+                if (!existingAssistants.isEmpty()) {
+                    settingsService.setAvailableAssistants(existingAssistants);
+                } else {
+                    // Create a default software development assistant at start up for now.
+                    Assistant defaultAssistant = AssistantUtils.createSoftwareDevelopmentAssistant();
+                    settingsService.addAvailableAssistant(defaultAssistant);
+                    settingsService.setSelectedAssistant(defaultAssistant);
+                }
+            } catch (Exception e) {
+                Notifications.Bus.notify(getErrorNotification("OpenAI API error.", e.getMessage()));
+            }
+        }
+    }
+
+    private List<Assistant> queryForExistingAssistants() {
+        OpenAiResponse<Assistant> response = OpenAIServiceCache.getInstance().getService()
+                .listAssistants(new ListSearchParameters());
+        return response.getData();
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -24,7 +60,7 @@ public class AssistantConfiguration implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        settingsComponent = new SettingsComponent();
+        settingsComponent = new SettingsComponent(PluginSettings.getInstance());
         return settingsComponent.getPanel();
     }
 
@@ -32,8 +68,6 @@ public class AssistantConfiguration implements Configurable {
     public boolean isModified() {
         PluginSettings settingsService = PluginSettings.getInstance();
         boolean modified = !settingsService.getApiKey().equals(settingsComponent.getApiKey());
-        modified = modified || !settingsService.getGpt3Model().equals(settingsComponent.getGpt3Model());
-        modified = modified || !settingsService.getGpt4Model().equals(settingsComponent.getGpt4Model());
         modified = modified || !settingsService.getEnableReformatProcessedCode() == settingsComponent.getEnableReformatProcessedCode();
         return modified;
     }
@@ -42,8 +76,6 @@ public class AssistantConfiguration implements Configurable {
     public void apply() throws ConfigurationException {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsService.setApiKey(settingsComponent.getApiKey());
-        settingsService.setGpt3Model(settingsComponent.getGpt3Model());
-        settingsService.setGpt4Model(settingsComponent.getGpt4Model());
         settingsService.setEnableReformatProcessedCode(settingsComponent.getEnableReformatProcessedCode());
     }
 
@@ -51,8 +83,6 @@ public class AssistantConfiguration implements Configurable {
     public void reset() {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsComponent.setApiKey(settingsService.getApiKey());
-        settingsComponent.setGpt3Model(settingsService.getGpt3Model());
-        settingsComponent.setGpt4Model(settingsService.getGpt4Model());
         settingsComponent.setEnableReformatProcessedCode(settingsService.getEnableReformatProcessedCode());
     }
 
