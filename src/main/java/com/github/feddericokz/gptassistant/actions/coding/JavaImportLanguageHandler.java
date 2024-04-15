@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.actions.code;
+package com.github.feddericokz.gptassistant.actions.coding;
 
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.command.WriteCommandAction;

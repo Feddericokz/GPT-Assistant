@@ -1,5 +1,6 @@
 package com.github.feddericokz.gptassistant.configuration;
 
+import com.github.feddericokz.gptassistant.context.ContextItem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
@@ -11,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Service
 @State(
@@ -21,11 +24,14 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     private GPTAssistantPluginState pluginState = new GPTAssistantPluginState();
 
+    private Consumer<ContextItem> updateContextItemsDisplayFunction;
+
     public static class GPTAssistantPluginState {
         public String apiKey = "";
         public boolean enableReformatProcessedCode = true;
         public List<Assistant> availableAssistants;
         public Assistant selectedAssistant;
+        private final List<ContextItem> contextItems = new ArrayList<>();
     }
 
     public static PluginSettings getInstance() {
@@ -87,4 +93,23 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         pluginState.selectedAssistant = assistant;
     }
 
+    public void addContextItem(ContextItem contextItem) {
+        pluginState.contextItems.add(contextItem);
+        if (updateContextItemsDisplayFunction != null) {
+            updateContextItemsDisplayFunction.accept(contextItem);
+        }
+    }
+
+    public List<ContextItem> getContextItems() {
+        return pluginState.contextItems;
+    }
+
+    public void clearContextItems() {
+        pluginState.contextItems.clear();
+        // TODO function to clear UI
+    }
+
+    public void setUpdateContextItemsDisplayFunction(Consumer<ContextItem> updateContextItemsDisplayFunction) {
+        this.updateContextItemsDisplayFunction = updateContextItemsDisplayFunction;
+    }
 }

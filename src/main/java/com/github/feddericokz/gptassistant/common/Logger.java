@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.utils;
+package com.github.feddericokz.gptassistant.common;
 
 public interface Logger {
 

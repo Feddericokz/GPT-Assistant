@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.actions.code;
+package com.github.feddericokz.gptassistant.actions.coding;
 
 import com.github.feddericokz.gptassistant.actions.ProcessSelectionAction;
 import com.github.feddericokz.gptassistant.actions.UserCancelledException;
@@ -7,6 +7,7 @@ import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorD
 import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -127,7 +128,7 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
         contextClassesMap.put("File context classes:", fileContextClasses);
 
         // Let the user choose which classes to send for context.
-        List<String> contextClasses = getUserChoosenContextClasses(contextClassesMap);
+        List<String> contextClasses = getUserChoosenContextClasses(contextClassesMap, e);
 
         // Get the actual content of the classes.
         List<String> classContents = getClassContentFromNames(contextClasses, e.getProject());
@@ -163,7 +164,7 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
         return containingClass != null ? containingClass.getQualifiedName() : null;
     }
 
-    public static List<String> getUserChoosenContextClasses(Map<String, List<String>> contextClassesMap) throws UserCancelledException {
+    public static List<String> getUserChoosenContextClasses(Map<String, List<String>> contextClassesMap, AnActionEvent e) throws UserCancelledException {
         List<List<CheckboxListItem>> itemsLists = new ArrayList<>();
         List<String> titles = new ArrayList<>();
 
@@ -172,7 +173,9 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
             titles.add(entry.getKey());
         }
 
-        ContextClassesSelectorDialog dialog = new ContextClassesSelectorDialog(itemsLists, titles);
+        Project project = e.getRequiredData(CommonDataKeys.PROJECT);
+
+        ContextClassesSelectorDialog dialog = new ContextClassesSelectorDialog(itemsLists, titles, project);
         dialog.show();
 
         if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {

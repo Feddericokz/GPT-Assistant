@@ -1,6 +1,6 @@
 package com.github.feddericokz.gptassistant.configuration;
 
-import com.github.feddericokz.gptassistant.ui.components.SettingsComponent;
+import com.github.feddericokz.gptassistant.ui.components.configuration.SettingsComponent;
 import com.github.feddericokz.gptassistant.utils.AssistantUtils;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.options.Configurable;

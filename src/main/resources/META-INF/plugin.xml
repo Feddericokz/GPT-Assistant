@@ -9,14 +9,25 @@
 
     <actions>
         <!-- Define the submenu group -->
-        <group id="GPTAssistantGroup" text="GPT Assistant" description="GPT Assistant options" popup="true">
+        <group id="GPTAssistantGroupEditor" text="GPT Assistant" description="GPT Assistant options" popup="true">
             <add-to-group group-id="EditorPopupMenu" anchor="last" />
         </group>
 
-        <group id="code_assistant" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
-            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.code.CodingAssistantProcessSelectionAction"
+        <group id="code_assistant_editor" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
+            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.coding.CodingAssistantProcessSelectionAction"
                     text="GPT: Process Selected Code" description="Make GPT process selected code."/>
-            <add-to-group group-id="GPTAssistantGroup" anchor="last" />
+            <add-to-group group-id="GPTAssistantGroupEditor" anchor="last" />
+        </group>
+
+
+        <group id="GPTAssistantGroupProject" text="GPT Assistant" description="GPT Assistant options" popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </group>
+
+        <group id="code_assistant_project" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
+            <action id="coding_assistant_add_to_context" class="com.github.feddericokz.gptassistant.actions.AddToContextAction"
+                    text="Add to Current Context" description="Adds selected class or package to the context that will be sent to the assistant."/>
+            <add-to-group group-id="GPTAssistantGroupProject" anchor="last" />
         </group>
     </actions>
 
@@ -29,7 +40,7 @@
 
         <toolWindow id="GPTAssistant"
                     anchor="bottom"
-                    factoryClass="com.github.feddericokz.gptassistant.ui.components.GPTAssistantToolWindowFactory"/>
+                    factoryClass="com.github.feddericokz.gptassistant.ui.components.ToolWindowFactory"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

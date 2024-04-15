@@ -2,13 +2,12 @@ package com.github.feddericokz.gptassistant.ui.components;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.ContentFactory;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class GPTAssistantToolWindowFactory implements ToolWindowFactory {
+public class ToolWindowFactory implements com.intellij.openapi.wm.ToolWindowFactory {
 
     @Getter
     private static ToolWindowContent toolWindowContent = null;
@@ -18,8 +17,10 @@ public class GPTAssistantToolWindowFactory implements ToolWindowFactory {
         toolWindowContent = new ToolWindowContent(project);
 
         ContentFactory contentFactory = ContentFactory.getInstance();
+
         toolWindow.getContentManager().addContent(
-                contentFactory.createContent(toolWindowContent, "", false));
+                contentFactory.createContent(toolWindowContent, "", false)
+        );
     }
 
 }

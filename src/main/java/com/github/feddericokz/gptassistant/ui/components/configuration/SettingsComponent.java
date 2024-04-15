@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components;
+package com.github.feddericokz.gptassistant.ui.components.configuration;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.intellij.ui.components.JBCheckBox;

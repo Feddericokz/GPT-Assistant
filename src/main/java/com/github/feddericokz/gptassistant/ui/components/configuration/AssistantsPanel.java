@@ -1,6 +1,7 @@
-package com.github.feddericokz.gptassistant.ui.components;
+package com.github.feddericokz.gptassistant.ui.components.configuration;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
+import com.github.feddericokz.gptassistant.ui.components.CollapsiblePanel;
 import com.github.feddericokz.gptassistant.utils.AssistantUtils;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.ui.ComboBox;
