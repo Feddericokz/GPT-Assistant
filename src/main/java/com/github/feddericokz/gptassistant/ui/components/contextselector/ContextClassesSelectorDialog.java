@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components;
+package com.github.feddericokz.gptassistant.ui.components.contextselector;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.SeparatorComponent;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,10 +57,13 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
             panel.add(collapsiblePanel);
         }
 
-        useGlobalContextClassesCheckbox = new JBCheckBox("Use global context");
+        panel.add(new JSeparator());
 
+        useGlobalContextClassesCheckbox = new JBCheckBox("Use global context");
         JPanel globalContextClassesPanel = new JPanel();
         globalContextClassesPanel.setLayout(new FlowLayout(LEFT));
+        globalContextClassesPanel.add(useGlobalContextClassesCheckbox);
+        globalContextClassesPanel.add(new SeparatorComponent());
         panel.add(globalContextClassesPanel);
 
         return panel;

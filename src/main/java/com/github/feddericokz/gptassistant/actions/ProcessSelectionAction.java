@@ -2,7 +2,7 @@ package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.configuration.OpenAIServiceCache;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
-import com.github.feddericokz.gptassistant.ui.components.ToolWindowLogger;
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.log.ToolWindowLogger;
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;

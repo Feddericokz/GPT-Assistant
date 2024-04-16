@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components;
+package com.github.feddericokz.gptassistant.ui.components.toolwindow;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;

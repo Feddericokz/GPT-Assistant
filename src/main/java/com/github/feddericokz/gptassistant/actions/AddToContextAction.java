@@ -2,8 +2,7 @@ package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
-import com.github.feddericokz.gptassistant.context.ContextItemType;
-import com.github.feddericokz.gptassistant.ui.components.ToolWindowLogger;
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.log.ToolWindowLogger;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @State(
@@ -31,7 +32,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         public boolean enableReformatProcessedCode = true;
         public List<Assistant> availableAssistants;
         public Assistant selectedAssistant;
-        private final List<ContextItem> contextItems = new ArrayList<>();
+        private List<ContextItem> contextItems = new ArrayList<>();
     }
 
     public static PluginSettings getInstance() {
@@ -94,10 +95,18 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     }
 
     public void addContextItem(ContextItem contextItem) {
+        // TODO Should not allow adding duplicate entries.
         pluginState.contextItems.add(contextItem);
         if (updateContextItemsDisplayFunction != null) {
             updateContextItemsDisplayFunction.accept(contextItem);
         }
+    }
+
+    public void removeContextItem(String path) {
+        List<ContextItem> toRemoveList = pluginState.contextItems.stream()
+                .filter(contextItem -> contextItem.contexPath().equals(path))
+                .toList();
+        pluginState.contextItems.removeAll(toRemoveList);
     }
 
     public List<ContextItem> getContextItems() {

@@ -2,12 +2,11 @@ package com.github.feddericokz.gptassistant.actions.coding;
 
 import com.github.feddericokz.gptassistant.actions.ProcessSelectionAction;
 import com.github.feddericokz.gptassistant.actions.UserCancelledException;
-import com.github.feddericokz.gptassistant.ui.components.CheckboxListItem;
-import com.github.feddericokz.gptassistant.ui.components.ContextClassesSelectorDialog;
+import com.github.feddericokz.gptassistant.ui.components.contextselector.CheckboxListItem;
+import com.github.feddericokz.gptassistant.ui.components.contextselector.ContextClassesSelectorDialog;
 import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
