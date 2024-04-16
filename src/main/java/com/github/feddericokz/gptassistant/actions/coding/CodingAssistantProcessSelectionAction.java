@@ -101,9 +101,9 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
 
     private String getUpdateSelection(List<String> assistantResponse) {
         for (String response : assistantResponse) {
-            if (response.contains("<response>")) {
-                int start = response.indexOf("<response>") + "<response>".length();
-                int end = response.indexOf("</response>");
+            if (response.contains("<code-replacement>")) {
+                int start = response.indexOf("<code-replacement>") + "<code-replacement>".length();
+                int end = response.indexOf("</code-replacement>");
                 return response.substring(start, end);
             }
         }
@@ -265,19 +265,28 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
 
     private List<String> getXmlTaggedMessagesForRequest(String selection, List<String> currentFileContent) {
         List<String> contextMessages = currentFileContent.stream()
-                .map(fileContent -> xmlTagText(fileContent, "context"))
+                .map(fileContent -> xmlTagText(fileContent, "context", Collections.emptyMap()))
                 .toList();
 
         List<String> requestMessages
-                = new ArrayList<>(Collections.singletonList(xmlTagText(selection, "selection")));
+                = new ArrayList<>(Collections.singletonList(xmlTagText(selection, "prompt",
+                Collections.singletonMap("isSelection", "true"))));
 
         requestMessages.addAll(contextMessages);
 
         return requestMessages;
     }
 
-    private String xmlTagText(String text, String tag) {
-        return String.format("<%s>%n%s%n<%1$s/>", tag, text);
+
+    private String xmlTagText(String text, String tag, Map<String, String> attributes) {
+        // Construct the opening tag with attributes.
+        String openingTag = "<" + tag + attributes.entrySet()
+                .stream()
+                .map(entry -> " " + entry.getKey() + "=\"" + entry.getValue() + "\"")
+                .collect(Collectors.joining("")) + ">";
+        String closingTag = "</" + tag + ">";
+        // Return formatted string with tags and text.
+        return openingTag + System.lineSeparator() + text + System.lineSeparator() + closingTag;
     }
 
 }
