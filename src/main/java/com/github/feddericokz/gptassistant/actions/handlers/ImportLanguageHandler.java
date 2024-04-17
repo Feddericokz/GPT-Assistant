@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.actions.coding;
+package com.github.feddericokz.gptassistant.actions.handlers;
 
 import com.intellij.psi.PsiFile;
 

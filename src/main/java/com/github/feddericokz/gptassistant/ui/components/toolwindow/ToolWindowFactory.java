@@ -6,7 +6,6 @@ import com.intellij.ui.content.ContentFactory;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
 public class ToolWindowFactory implements com.intellij.openapi.wm.ToolWindowFactory {
 
     @Getter
@@ -14,7 +13,7 @@ public class ToolWindowFactory implements com.intellij.openapi.wm.ToolWindowFact
 
     @Override
     public void createToolWindowContent(@NotNull Project project, ToolWindow toolWindow) {
-        toolWindowContent = new ToolWindowContent(project);
+        toolWindowContent = new ToolWindowContent();
 
         ContentFactory contentFactory = ContentFactory.getInstance();
 

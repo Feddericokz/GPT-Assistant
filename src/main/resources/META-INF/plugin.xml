@@ -14,7 +14,7 @@
         </group>
 
         <group id="code_assistant_editor" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
-            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.coding.CodingAssistantProcessSelectionAction"
+            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.AssistantProcessSelectionAction"
                     text="GPT: Process Selected Code" description="Make GPT process selected code."/>
             <add-to-group group-id="GPTAssistantGroupEditor" anchor="last" />
         </group>

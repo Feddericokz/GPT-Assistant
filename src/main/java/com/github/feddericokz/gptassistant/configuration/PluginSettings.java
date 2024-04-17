@@ -13,8 +13,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @State(
@@ -32,7 +30,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         public boolean enableReformatProcessedCode = true;
         public List<Assistant> availableAssistants;
         public Assistant selectedAssistant;
-        private List<ContextItem> contextItems = new ArrayList<>();
+        private final List<ContextItem> contextItems = new ArrayList<>();
     }
 
     public static PluginSettings getInstance() {

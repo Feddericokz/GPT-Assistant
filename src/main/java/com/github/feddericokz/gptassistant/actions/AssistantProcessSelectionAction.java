@@ -1,113 +1,42 @@
-package com.github.feddericokz.gptassistant.actions.coding;
+package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.actions.ProcessSelectionAction;
-import com.github.feddericokz.gptassistant.actions.UserCancelledException;
-import com.github.feddericokz.gptassistant.ui.components.contextselector.CheckboxListItem;
-import com.github.feddericokz.gptassistant.ui.components.contextselector.ContextClassesSelectorDialog;
-import com.github.feddericokz.gptassistant.utils.ActionEventUtils;
+import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler;
+import com.github.feddericokz.gptassistant.actions.handlers.ImportsResponseHandler;
+import com.github.feddericokz.gptassistant.actions.handlers.ReplaceSelectionResponseHandler;
+import com.github.feddericokz.gptassistant.ui.components.context.selector.CheckboxListItem;
+import com.github.feddericokz.gptassistant.ui.components.context.selector.ContextClassesSelectorDialog;
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
-public class CodingAssistantProcessSelectionAction extends ProcessSelectionAction {
+public class AssistantProcessSelectionAction extends AbstractProcessSelectionAction {
 
-    public CodingAssistantProcessSelectionAction() {
+    List<AssistantResponseHandler> handlers = new ArrayList<>();
+
+    public AssistantProcessSelectionAction() {
+        handlers.add(new ReplaceSelectionResponseHandler());
+        handlers.add(new ImportsResponseHandler());
     }
 
     @Override
-    public void doWorkWithResponse(@NotNull AnActionEvent e, List<String> assistantResponse) {
-        logger.log("Updating selection...", "INFO");
-        ActionEventUtils.updateSelection(e, getUpdateSelection(assistantResponse));
-
-        logger.log("Performing follow up operations...", "INFO");
-        performFollowUpOperations(e, assistantResponse);
-
-        reformatCodeIfEnabled(e);
-    }
-
-    private void reformatCodeIfEnabled(AnActionEvent e) {
-        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-
-        if (isEnableReformatSelectedCode()) {
-            logger.log("Re-formatting code...", "INFO");
-            reformatSelection(editor);
-        }
-    }
-
-    private static void reformatSelection(Editor editor) {
-        // Get needed objects to work with.
-        Document document = editor.getDocument();
-        Project project = Objects.requireNonNull(editor.getProject());
-        SelectionModel selection = editor.getSelectionModel();
-        PsiFile file = Objects.requireNonNull(PsiDocumentManager.getInstance(project).getPsiFile(document));
-
-        // Ensure the document is committed
-        PsiDocumentManager.getInstance(project)
-                .commitDocument(document);
-
-        // Define the range to reformat
-        TextRange rangeToReformat = new TextRange(selection.getSelectionStart(), selection.getSelectionEnd());
-
-        // Get the CodeStyleManager instance
-        CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
-
-        // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
-        WriteCommandAction.runWriteCommandAction(project, () ->
-                codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
-        );
-    }
-
-    protected void performFollowUpOperations(AnActionEvent e, List<String> assistantResponse) {
-        List<String> importStatements = getImportsList(assistantResponse);
-
-        // TODO If there's no import statements, we can probably recover by making another request.
-
-        // Update imports if needed.
-        if (!importStatements.isEmpty()) {
-            importStatements.forEach(importStatement -> {
-                ImportUtils.addImportStatement(e, importStatement);
-            });
-        }
-    }
-
-    private static List<String> getImportsList(List<String> assistantResponse) {
-        String imports = assistantResponse.stream()
-                .filter(response -> response.contains("<imports>"))
-                .map(response -> response.substring(response.indexOf("<imports>") + "<imports>".length(), response.indexOf("</imports>")))
-                .findFirst()
-                .orElse("");
-        return Arrays.asList(imports.split(","));
-    }
-
-    private String getUpdateSelection(List<String> assistantResponse) {
-        for (String response : assistantResponse) {
-            if (response.contains("<code-replacement>")) {
-                int start = response.indexOf("<code-replacement>") + "<code-replacement>".length();
-                int end = response.indexOf("</code-replacement>");
-                return response.substring(start, end);
-            }
-        }
-        return null;
+    public List<AssistantResponseHandler> getResponseHandlersList() {
+        return handlers;
     }
 
     @Override
@@ -135,7 +64,7 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
         return getXmlTaggedMessagesForRequest(selection, classContents);
     }
 
-    private List<String> getClassContentFromNames (List<String> classNames, Project project){
+    private List<String> getClassContentFromNames(List<String> classNames, Project project){
         JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
         GlobalSearchScope scope = GlobalSearchScope.allScope(project);
 
@@ -233,7 +162,6 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
                 .collect(Collectors.toList());
     }
 
-
     private List<String> getFileContextClasses(AnActionEvent e) {
         Project project = e.getProject();
         if (project == null) {
@@ -262,7 +190,6 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
                 .collect(Collectors.toList());
     }
 
-
     private List<String> getXmlTaggedMessagesForRequest(String selection, List<String> currentFileContent) {
         List<String> contextMessages = currentFileContent.stream()
                 .map(fileContent -> xmlTagText(fileContent, "context", Collections.emptyMap()))
@@ -276,7 +203,6 @@ public class CodingAssistantProcessSelectionAction extends ProcessSelectionActio
 
         return requestMessages;
     }
-
 
     private String xmlTagText(String text, String tag, Map<String, String> attributes) {
         // Construct the opening tag with attributes.

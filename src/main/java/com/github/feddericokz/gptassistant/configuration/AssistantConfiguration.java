@@ -23,16 +23,23 @@ public class AssistantConfiguration implements Configurable {
 
     public AssistantConfiguration() {
         PluginSettings settingsService = PluginSettings.getInstance();
-        if (!StringUtils.isBlank(settingsService.getApiKey()) // Cannot make requests with no API keys.
-                && (settingsService.getAvailableAssistants() == null
-                    || settingsService.getAvailableAssistants().isEmpty())) {
-
+        if (!StringUtils.isBlank(settingsService.getApiKey())) { // Cannot make requests with no API keys.
             try {
                 // First should query for existing assistants.
                 List<Assistant> existingAssistants = queryForExistingAssistants();
 
                 if (!existingAssistants.isEmpty()) {
                     settingsService.setAvailableAssistants(existingAssistants);
+
+                    // Check if saved available assistant still exists and change it otherwise.
+                    if (settingsService.getSelectedAssistant() != null) {
+                        Assistant selectedAssistant = settingsService.getSelectedAssistant();
+                        if (!existingAssistants.contains(selectedAssistant)) {
+                            // TODO Notify the user.
+                            // Setting selected assistant to null if it doesn't exist anymore.
+                            settingsService.setSelectedAssistant(null);
+                        }
+                    }
                 } else {
                     // Create a default software development assistant at start up for now.
                     Assistant defaultAssistant = AssistantUtils.createSoftwareDevelopmentAssistant();

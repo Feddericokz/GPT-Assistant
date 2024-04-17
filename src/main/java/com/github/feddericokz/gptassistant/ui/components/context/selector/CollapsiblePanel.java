@@ -1,9 +1,8 @@
-package com.github.feddericokz.gptassistant.ui.components.contextselector;
+package com.github.feddericokz.gptassistant.ui.components.context.selector;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
