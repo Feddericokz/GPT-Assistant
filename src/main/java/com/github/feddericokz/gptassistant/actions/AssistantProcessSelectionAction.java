@@ -1,6 +1,7 @@
 package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler;
+import com.github.feddericokz.gptassistant.actions.handlers.FileCreationResponseHandler;
 import com.github.feddericokz.gptassistant.actions.handlers.ImportsResponseHandler;
 import com.github.feddericokz.gptassistant.actions.handlers.ReplaceSelectionResponseHandler;
 import com.github.feddericokz.gptassistant.ui.components.context.selector.CheckboxListItem;
@@ -32,6 +33,7 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
     public AssistantProcessSelectionAction() {
         handlers.add(new ReplaceSelectionResponseHandler());
         handlers.add(new ImportsResponseHandler());
+        handlers.add(new FileCreationResponseHandler());
     }
 
     @Override
@@ -195,6 +197,7 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
                 .map(fileContent -> xmlTagText(fileContent, "context", Collections.emptyMap()))
                 .toList();
 
+        // TODO Here I need to also add the language tag.
         List<String> requestMessages
                 = new ArrayList<>(Collections.singletonList(xmlTagText(selection, "prompt",
                 Collections.singletonMap("isSelection", "true"))));

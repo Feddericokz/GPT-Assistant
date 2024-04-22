@@ -27,7 +27,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
 
     private String getUpdateSelection(List<String> assistantResponse) {
         return AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse,
-                "<code-replacement>", "</code-replacement>");
+                "code-replacement");
     }
 
     private void reformatCodeIfEnabled(AnActionEvent e) {

@@ -20,7 +20,7 @@ public class AssistantUtils {
     public static Assistant createSoftwareDevelopmentAssistant() {
         return createAssistant("GPT Software development assistant.", "gpt-4-0125-preview",
                 "A GPT powered coding assistant that understands your code.",
-                Prompts.SOFTWARE_DEVELOPMENT_ASSISTANT_PROMPT);
+                Prompts.SOFTWARE_DEVELOPMENT_ASSISTANT_PROMPT_2);
     }
 
     public static Assistant createAssistant(String name, String model, String description, String instructions) {

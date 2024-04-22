@@ -29,7 +29,7 @@ public class ImportsResponseHandler implements AssistantResponseHandler {
     }
 
     private static List<String> getImportsList(List<String> assistantResponse) {
-        String imports = getXmlTagContentFromResponse(assistantResponse, "<imports>", "</imports>");
+        String imports = getXmlTagContentFromResponse(assistantResponse, "imports");
         return Arrays.asList(imports.split(","));
     }
 
