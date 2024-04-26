@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components.context.selector;
+package com.github.feddericokz.gptassistant.ui.components.context_selector;
 
 import lombok.Getter;
 import lombok.Setter;

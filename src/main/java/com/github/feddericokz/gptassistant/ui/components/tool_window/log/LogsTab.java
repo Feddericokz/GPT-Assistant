@@ -1,7 +1,6 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow.log;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.log;
 
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTextArea;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;

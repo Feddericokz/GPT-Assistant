@@ -1,8 +1,9 @@
 package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler;
+import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.log.ToolWindowLogger;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.github.feddericokz.gptassistant.utils.AssistantNotSelectedException;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -24,7 +25,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class AbstractProcessSelectionAction extends AnAction {
 
-    private ToolWindowLogger logger = ToolWindowLogger.getInstance(AbstractProcessSelectionAction.class);
+    private final Logger logger = ToolWindowLogger.getInstance(AbstractProcessSelectionAction.class);
 
     protected final PluginSettings settings = PluginSettings.getInstance();
 

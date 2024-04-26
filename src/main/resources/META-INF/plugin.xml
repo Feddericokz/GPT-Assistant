@@ -40,7 +40,7 @@
 
         <toolWindow id="GPTAssistant"
                     anchor="bottom"
-                    factoryClass="com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowFactory"/>
+                    factoryClass="com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowFactory"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

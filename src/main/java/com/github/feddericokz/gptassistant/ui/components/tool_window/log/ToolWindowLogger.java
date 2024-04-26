@@ -1,8 +1,8 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow.log;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.log;
 
 import com.github.feddericokz.gptassistant.common.Logger;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowFactory;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowFactory;
 
 import javax.swing.*;
 import java.io.PrintWriter;
@@ -22,6 +22,7 @@ public class ToolWindowLogger implements Logger {
         return new ToolWindowLogger(clazz);
     }
 
+    @Override
     public void log(String message, String logLevel) {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
@@ -35,22 +36,27 @@ public class ToolWindowLogger implements Logger {
         return "[" + logLevel + "] " + currentTime + " | " + clazz.getName() + " | " + message;
     }
 
+    @Override
     public void info(String message) {
         log(message, "INFO");
     }
 
+    @Override
     public void debug(String message) {
         log(message, "DEBUG");
     }
 
+    @Override
     public void warning(String message) {
         log(message, "WARNING");
     }
 
+    @Override
     public void error(String message) {
         log(message, "ERROR");
     }
 
+    @Override
     public void log(String message, String logLevel, Exception exception) {
         StringWriter sw = new StringWriter();
         exception.printStackTrace(new PrintWriter(sw));
@@ -63,14 +69,15 @@ public class ToolWindowLogger implements Logger {
         }
     }
 
+    @Override
     public void warning(String message, Exception exception) {
         log(message, "WARNING", exception);
     }
 
+    @Override
     public void error(String message, Exception exception) {
         log(message, "ERROR", exception);
     }
-
 
 }
 

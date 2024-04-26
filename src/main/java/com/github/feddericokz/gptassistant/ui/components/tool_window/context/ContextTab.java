@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow.context;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.context;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;

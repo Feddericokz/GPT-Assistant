@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components.context.selector;
+package com.github.feddericokz.gptassistant.ui.components.context_selector;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;

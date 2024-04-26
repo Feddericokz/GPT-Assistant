@@ -1,7 +1,7 @@
 package com.github.feddericokz.gptassistant.ui.components.configuration;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
-import com.github.feddericokz.gptassistant.ui.components.context.selector.CollapsiblePanel;
+import com.github.feddericokz.gptassistant.ui.components.context_selector.CollapsiblePanel;
 import com.github.feddericokz.gptassistant.utils.AssistantUtils;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.ui.ComboBox;
@@ -22,6 +22,8 @@ import java.util.Map;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getErrorNotification;
 
 public class AssistantsPanel extends JPanel {
+
+    // TODO Break this class apart.
 
     private static final String[] MODEL_OPTIONS = {"gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-1106-preview",
             "gpt-4-vision-preview", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-0125",

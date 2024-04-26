@@ -1,9 +1,8 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow;
+package com.github.feddericokz.gptassistant.ui.components.tool_window;
 
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.context.ContextTab;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.log.LogsTab;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.request_info.RequestInfoTab;
-import com.intellij.openapi.project.Project;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.context.ContextTab;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.LogsTab;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoTab;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import lombok.Getter;

@@ -1,6 +1,7 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,8 +1,8 @@
 package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.actions.handlers.*;
-import com.github.feddericokz.gptassistant.ui.components.context.selector.CheckboxListItem;
-import com.github.feddericokz.gptassistant.ui.components.context.selector.ContextClassesSelectorDialog;
+import com.github.feddericokz.gptassistant.ui.components.context_selector.CheckboxListItem;
+import com.github.feddericokz.gptassistant.ui.components.context_selector.ContextClassesSelectorDialog;
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;

@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow.context;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.context;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;

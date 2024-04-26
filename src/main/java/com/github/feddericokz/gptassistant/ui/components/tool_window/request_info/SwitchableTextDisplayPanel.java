@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.ui.components.toolwindow.request_info;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.request_info;
 
 import javax.swing.*;
 import java.awt.*;

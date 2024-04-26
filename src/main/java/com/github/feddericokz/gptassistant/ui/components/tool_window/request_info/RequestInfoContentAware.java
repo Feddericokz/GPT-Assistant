@@ -1,7 +1,7 @@
-package com.github.feddericokz.gptassistant.actions.handlers;
+package com.github.feddericokz.gptassistant.ui.components.tool_window.request_info;
 
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
-import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowFactory;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowFactory;
 
 import javax.swing.*;
 
