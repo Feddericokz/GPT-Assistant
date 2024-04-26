@@ -1,6 +1,7 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -17,17 +18,38 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-public class ReplaceSelectionResponseHandler implements AssistantResponseHandler {
+public class ReplaceSelectionResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
 
     @Override
     public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) {
         updateSelection(e, getUpdateSelection(assistantResponse));
+        updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "code-replacement"));
         reformatCodeIfEnabled(e);
     }
 
+    @Override
+    public void updateContent(ToolWindowContent content, String update) {
+        content.getRequestInfoTab().updateCodeReplacement(update);
+    }
+
     private String getUpdateSelection(List<String> assistantResponse) {
-        return AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse,
-                "code-replacement");
+        String xmlTag = AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "code-replacement");
+
+        // Parsing it this way is simpler, had issues with Java code inside a xml tag.
+
+        // Find the start of the <code-replacement> tag
+        int start = xmlTag.indexOf("<code-replacement>");
+        if (start == -1) return ""; // Return empty if tag not found
+
+        // Adjust start to get content after the tag
+        start += "<code-replacement>".length();
+
+        // Find the end of the </code-replacement> tag
+        int end = xmlTag.indexOf("</code-replacement>", start);
+        if (end == -1) return ""; // Return empty if closing tag not found
+
+        // Extract the content between the tags
+        return xmlTag.substring(start, end).trim();
     }
 
     private void reformatCodeIfEnabled(AnActionEvent e) {

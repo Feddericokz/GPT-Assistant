@@ -2,6 +2,7 @@ package com.github.feddericokz.gptassistant.ui.components.toolwindow;
 
 import com.github.feddericokz.gptassistant.ui.components.toolwindow.context.ContextTab;
 import com.github.feddericokz.gptassistant.ui.components.toolwindow.log.LogsTab;
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.request_info.RequestInfoTab;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
@@ -16,6 +17,7 @@ public class ToolWindowContent extends JPanel {
 
     private final LogsTab logTab;
     private final ContextTab contextTab;
+    private final RequestInfoTab requestInfoTab;
 
     public ToolWindowContent() {
         // Initialize components
@@ -25,10 +27,14 @@ public class ToolWindowContent extends JPanel {
         contextTab = new ContextTab();
         JBScrollPane contextScrollPane = new JBScrollPane(contextTab);
 
+        requestInfoTab = new RequestInfoTab();
+        JBScrollPane requestInfoScrollPane = new JBScrollPane(requestInfoTab);
+
         // Initialize tabbed pane and add tabs
         JTabbedPane tabbedPane = new JBTabbedPane();
         tabbedPane.addTab("Logs", logScrollPane);
         tabbedPane.addTab("Context", contextScrollPane);
+        tabbedPane.addTab("Request Info", requestInfoScrollPane);
 
         // Configure panel layout and add the tabbed pane
         setLayout(new BorderLayout());

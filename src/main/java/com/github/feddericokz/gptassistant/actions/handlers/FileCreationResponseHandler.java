@@ -1,5 +1,6 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -12,7 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class FileCreationResponseHandler implements AssistantResponseHandler {
+public class FileCreationResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
 
     @Override
     public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) {
@@ -20,6 +21,7 @@ public class FileCreationResponseHandler implements AssistantResponseHandler {
         String fileCreationTagContent = AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse, "file-creation");
         String filePath = AssistantResponseHandler.getXmlAttributeFromResponses(assistantResponse, "file-creation",  "path");
 
+        updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "file-creation"));
 
         // Verify if the content and path are extracted successfully
         if (!fileCreationTagContent.isEmpty() && filePath != null) {
@@ -64,6 +66,11 @@ public class FileCreationResponseHandler implements AssistantResponseHandler {
                 }
             });
         }
+    }
+
+    @Override
+    public void updateContent(ToolWindowContent content, String update) {
+        content.getRequestInfoTab().updateFileCreation(update);
     }
 
 }

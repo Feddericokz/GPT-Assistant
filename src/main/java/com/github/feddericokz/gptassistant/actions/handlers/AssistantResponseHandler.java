@@ -48,6 +48,28 @@ public interface AssistantResponseHandler {
 
 
     static String getXmlTagContentFromResponse(List<String> assistantResponses, String tagName) {
+        String matchedFullTag = getXmlTagFromResponse(assistantResponses, tagName);
+        try {
+            // Parsing the matchedTag to a Document to easily extract attributes.
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            ByteArrayInputStream input = new ByteArrayInputStream(matchedFullTag.getBytes("UTF-8"));
+            Document doc = builder.parse(input);
+
+            Node desiredNode = doc.getElementsByTagName(tagName).item(0);
+            if (desiredNode != null && desiredNode.getTextContent() != null) {
+                // Return the content of the found tag
+                return desiredNode.getTextContent();
+            }
+        } catch (Exception e) {
+            // TODO Agreed that should be replaced with more robust logging.
+            e.printStackTrace();
+        }
+
+        return ""; // Return empty string if not found or error occurred.
+    }
+
+    static String getXmlTagFromResponse(List<String> assistantResponses, String tagName) {
         // Pattern to match the tagName with any attributes.
         Pattern fullTagPattern = Pattern.compile(
                 "<" + Pattern.quote(tagName) + "(\\s+[\\w\\W]*?)?>[\\s\\S]*?</" + Pattern.quote(tagName) + ">",
@@ -56,23 +78,7 @@ public interface AssistantResponseHandler {
         for (String response : assistantResponses) {
             Matcher matcher = fullTagPattern.matcher(response);
             if (matcher.find()) {
-                String matchedFullTag = matcher.group(0);
-                try {
-                    // Parsing the matchedTag to a Document to easily extract attributes.
-                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder builder = factory.newDocumentBuilder();
-                    ByteArrayInputStream input = new ByteArrayInputStream(matchedFullTag.getBytes("UTF-8"));
-                    Document doc = builder.parse(input);
-
-                    Node desiredNode = doc.getElementsByTagName(tagName).item(0);
-                    if (desiredNode != null && desiredNode.getTextContent() != null) {
-                        // Return the content of the found tag
-                        return desiredNode.getTextContent();
-                    }
-                } catch (Exception e) {
-                    // TODO Agreed that should be replaced with more robust logging.
-                    e.printStackTrace();
-                }
+                return matcher.group(0);
             }
         }
         return ""; // Return empty string if not found or error occurred.

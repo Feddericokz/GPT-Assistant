@@ -1,9 +1,6 @@
 package com.github.feddericokz.gptassistant.actions;
 
-import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler;
-import com.github.feddericokz.gptassistant.actions.handlers.FileCreationResponseHandler;
-import com.github.feddericokz.gptassistant.actions.handlers.ImportsResponseHandler;
-import com.github.feddericokz.gptassistant.actions.handlers.ReplaceSelectionResponseHandler;
+import com.github.feddericokz.gptassistant.actions.handlers.*;
 import com.github.feddericokz.gptassistant.ui.components.context.selector.CheckboxListItem;
 import com.github.feddericokz.gptassistant.ui.components.context.selector.ContextClassesSelectorDialog;
 import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
@@ -34,6 +31,8 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         handlers.add(new ReplaceSelectionResponseHandler());
         handlers.add(new ImportsResponseHandler());
         handlers.add(new FileCreationResponseHandler());
+        handlers.add(new StepsResponseHandler());
+        handlers.add(new UserRequestResponseHandler());
     }
 
     @Override

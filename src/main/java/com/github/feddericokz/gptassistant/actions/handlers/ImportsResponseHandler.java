@@ -1,5 +1,6 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
+import com.github.feddericokz.gptassistant.ui.components.toolwindow.ToolWindowContent;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import static com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler.getXmlTagContentFromResponse;
 
-public class ImportsResponseHandler implements AssistantResponseHandler {
+public class ImportsResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
     @Override
     public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) {
         List<String> importStatements = getImportsList(assistantResponse);
@@ -26,9 +27,16 @@ public class ImportsResponseHandler implements AssistantResponseHandler {
                 addImportStatement(e, importStatement);
             });
         }
+
+        updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "imports"));
     }
 
-    private static List<String> getImportsList(List<String> assistantResponse) {
+    @Override
+    public void updateContent(ToolWindowContent content, String update) {
+        content.getRequestInfoTab().updateImports(update);
+    }
+
+    private List<String> getImportsList(List<String> assistantResponse) {
         String imports = getXmlTagContentFromResponse(assistantResponse, "imports");
         return Arrays.asList(imports.split(","));
     }
