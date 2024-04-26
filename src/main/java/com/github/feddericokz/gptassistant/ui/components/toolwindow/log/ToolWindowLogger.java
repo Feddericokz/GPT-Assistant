@@ -32,7 +32,7 @@ public class ToolWindowLogger implements Logger {
 
     private String formatLogMessage(String message, String logLevel) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return "[" + logLevel + "] " + currentTime + " | " + clazz.getSimpleName() + " | " + message;
+        return "[" + logLevel + "] " + currentTime + " | " + clazz.getName() + " | " + message;
     }
 
     public void info(String message) {
@@ -58,7 +58,7 @@ public class ToolWindowLogger implements Logger {
 
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
-            String formattedMessage = formatLogMessage(message + "\\n" + exceptionAsString, logLevel);
+            String formattedMessage = formatLogMessage(message + "\n" + exceptionAsString, logLevel);
             SwingUtilities.invokeLater(() -> content.getLogTab().logMessage(formattedMessage, logLevel));
         }
     }

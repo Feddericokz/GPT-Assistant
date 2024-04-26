@@ -1,43 +1,57 @@
 package com.github.feddericokz.gptassistant.ui.components.toolwindow.log;
 
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 
 import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class LogsTab extends JPanel {
 
-    private JBTextArea logArea;
+    private JTextPane logPane;
+    private StyledDocument logDoc;
 
     public LogsTab() {
         setLayout(new BorderLayout());
-        createLogArea();
+        createLogPane();
     }
 
-    private void createLogArea() {
-        logArea = new JBTextArea();
-        logArea.setEditable(false);
-        add(logArea, BorderLayout.CENTER);
+    private void createLogPane() {
+        logPane = new JTextPane();
+        logPane.setEditable(false);
+        logDoc = logPane.getStyledDocument();
+        add(new JBScrollPane(logPane), BorderLayout.CENTER);
     }
 
     public void logMessage(String message, String level) {
+        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
         switch (level.toUpperCase()) {
+            // TODO Refactor to use JBColor?
             case "ERROR":
-                logArea.append("\u001B[31m" + message + "\u001B[0m\n"); // Red
+                StyleConstants.setForeground(attributeSet, new Color(255, 105, 97)); // Pastel Red
                 break;
             case "WARN":
-                logArea.append("\u001B[33m" + message + "\u001B[0m\n"); // Yellow
+                StyleConstants.setForeground(attributeSet, new Color(255, 179, 71)); // Pastel Orange
                 break;
             case "INFO":
-                logArea.append("\u001B[32m" + message + "\u001B[0m\n"); // Green
+                StyleConstants.setForeground(attributeSet, new Color(119, 221, 119)); // Pastel Green
                 break;
             case "DEBUG":
-                logArea.append("\u001B[34m" + message + "\u001B[0m\n"); // Blue
+                StyleConstants.setForeground(attributeSet, new Color(162, 181, 205)); // Pastel Blue
                 break;
             default:
-                logArea.append(message + "\n"); // Default color
+                StyleConstants.setForeground(attributeSet, new Color(221, 221, 221)); // Pastel Grey
+
         }
-        logArea.setCaretPosition(logArea.getDocument().getLength());
+        try {
+            logDoc.insertString(logDoc.getLength(), message + "\n", attributeSet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logPane.setCaretPosition(logDoc.getLength());
     }
 
 }
