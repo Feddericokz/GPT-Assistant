@@ -16,6 +16,7 @@ import com.intellij.openapi.project.Project;
 import com.theokanning.openai.runs.Run;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
@@ -42,26 +43,35 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
             try {
                 List<String> stringMessages = getMessagesForRequest(e, selection);
 
-                Run assistantRun = createAssistantThreadAndRun(stringMessages);
-                logger.debug("Assistant run created successfully.");
+                // TODO Show some UI feedback while this is running.
 
-                int tokenCount = calculateTokenCount(stringMessages);
-                Notifications.Bus.notify(getInfoNotification("Tokens.", tokenCount + " sent."));
+                new Thread(() -> {
+                    try {
+                        Run assistantRun = createAssistantThreadAndRun(stringMessages);
+                        logger.debug("Assistant run created successfully.");
 
-                List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
-                logger.debug("Assistant response received.");
+                        int tokenCount = calculateTokenCount(stringMessages);
+                        Notifications.Bus.notify(getInfoNotification("Tokens.", tokenCount + " sent."));
 
-                // Now I need to hand this off to handlers to do their thing.
-                getResponseHandlersList().forEach(assistantResponseHandler -> {
-                    assistantResponseHandler.handleResponse(e, assistantResponse);
-                });
-                logger.info("Responses handled successfully.");
+                        List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
+                        logger.debug("Assistant response received.");
+
+                        // Now I need to hand this off to handlers to do their thing on the UI thread.
+                        SwingUtilities.invokeLater(() -> {
+                            getResponseHandlersList().forEach(assistantResponseHandler -> {
+                                assistantResponseHandler.handleResponse(e, assistantResponse);
+                            });
+                            logger.info("Responses handled successfully.");
+                        });
+                    } catch (AssistantNotSelectedException ex) {
+                        logger.error("No assistant selected for the project.", ex);
+                        Project project = e.getRequiredData(CommonDataKeys.PROJECT);
+                        Notifications.Bus.notify(getMissingAssistantNotification(project), project);
+                    }
+                }).start();
+
             } catch (UserCancelledException ex) {
                 logger.warning("Action was cancelled by the user.", ex);
-            } catch (AssistantNotSelectedException ex) {
-                logger.error("No assistant selected for the project.", ex);
-                Project project = e.getRequiredData(CommonDataKeys.PROJECT);
-                Notifications.Bus.notify(getMissingAssistantNotification(project), project);
             }
         } else {
             logger.info("API Key is missing.");
