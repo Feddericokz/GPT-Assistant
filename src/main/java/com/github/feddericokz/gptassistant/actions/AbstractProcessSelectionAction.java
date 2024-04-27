@@ -5,6 +5,7 @@ import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.github.feddericokz.gptassistant.utils.AssistantNotSelectedException;
+import com.github.feddericokz.gptassistant.utils.TokenCalculator;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -17,8 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
-import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingAssistantNotification;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.createAssistantThreadAndRun;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.waitUntilRunCompletesAndGetAssistantResponse;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -41,8 +41,12 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
             String selection = getSelectedText(e);
             try {
                 List<String> stringMessages = getMessagesForRequest(e, selection);
+
                 Run assistantRun = createAssistantThreadAndRun(stringMessages);
                 logger.debug("Assistant run created successfully.");
+
+                int tokenCount = calculateTokenCount(stringMessages);
+                Notifications.Bus.notify(getInfoNotification("Tokens.", tokenCount + " sent."));
 
                 List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);
                 logger.debug("Assistant response received.");
@@ -53,8 +57,7 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
                 });
                 logger.info("Responses handled successfully.");
             } catch (UserCancelledException ex) {
-                logger.error("Action was cancelled by the user.", ex);
-                // TODO Notify the user some other way, maybe a dialog, that it was cancelled.
+                logger.warning("Action was cancelled by the user.", ex);
             } catch (AssistantNotSelectedException ex) {
                 logger.error("No assistant selected for the project.", ex);
                 Project project = e.getRequiredData(CommonDataKeys.PROJECT);
@@ -72,6 +75,18 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
         Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
         SelectionModel selectionModel = editor.getSelectionModel();
         return selectionModel.getSelectedText();
+    }
+
+    private int calculateTokenCount(List<String>messages){
+        TokenCalculator tokenCalculator = new TokenCalculator();
+        int totalTokens = 0;
+        for (String message : messages) {
+            int tokens = tokenCalculator.calculateTokens(message);
+            logger.debug("Calculated tokens for message: " + tokens);
+            totalTokens += tokens;
+        }
+        logger.info("Total tokens for all messages: " + totalTokens);
+        return totalTokens;
     }
 
 }

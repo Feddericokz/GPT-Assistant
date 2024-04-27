@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.openia)
     implementation(libs.annotations)
     implementation(libs.apacheCommons)
+    implementation(libs.jtokkit)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

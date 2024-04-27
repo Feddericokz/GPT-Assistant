@@ -39,8 +39,12 @@ public class Notifications {
         return getNotification(title, errorMessage, NotificationType.ERROR);
     }
 
-    public static Notification getWarningNotification(String title, String errorMessage) {
-        return getNotification(title, errorMessage, NotificationType.WARNING);
+    public static Notification getWarningNotification(String title, String warningMessage) {
+        return getNotification(title, warningMessage, NotificationType.WARNING);
+    }
+
+    public static Notification getInfoNotification(String title, String infoMessage) {
+        return getNotification(title, infoMessage, NotificationType.INFORMATION);
     }
 
 }
