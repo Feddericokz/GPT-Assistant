@@ -43,12 +43,14 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
             try {
                 List<String> stringMessages = getMessagesForRequest(e, selection);
 
-                // TODO Show some UI feedback while this is running.
+                // TODO <nlp> Show some UI feedback while this is running.. </nlp>
 
                 new Thread(() -> {
                     try {
                         Run assistantRun = createAssistantThreadAndRun(stringMessages);
                         logger.debug("Assistant run created successfully.");
+
+                        // TODO Add configuration to enable asking for user consent on tokens before sending the request.
 
                         int tokenCount = calculateTokenCount(stringMessages);
                         Notifications.Bus.notify(getInfoNotification("Tokens.", tokenCount + " sent."));

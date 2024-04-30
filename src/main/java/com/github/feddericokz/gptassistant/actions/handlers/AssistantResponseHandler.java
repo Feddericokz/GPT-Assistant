@@ -1,5 +1,8 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
+import com.github.feddericokz.gptassistant.actions.AbstractProcessSelectionAction;
+import com.github.feddericokz.gptassistant.common.Logger;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -14,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface AssistantResponseHandler {
+
+    Logger logger = ToolWindowLogger.getInstance(AssistantResponseHandler.class);
 
     static String getXmlAttributeFromResponses(List<String> assistantResponses, String tagName, String attributeName) {
         // Pattern to match the tagName with any attributes.
@@ -36,8 +41,7 @@ public interface AssistantResponseHandler {
                     Node nodeAttr = attrs.getNamedItem(attributeName);
                     return nodeAttr != null ? nodeAttr.getNodeValue() : "";
                 } catch (Exception e) {
-                    // TODO Agreed that should be replaced with more robust logging.
-                    e.printStackTrace();
+                    logger.error("Error while parsing assistant response.", e);
                 }
             }
         }
@@ -62,8 +66,7 @@ public interface AssistantResponseHandler {
                 return desiredNode.getTextContent();
             }
         } catch (Exception e) {
-            // TODO Agreed that should be replaced with more robust logging.
-            e.printStackTrace();
+            logger.error("Error while parsing assistant response.", e);
         }
 
         return ""; // Return empty string if not found or error occurred.

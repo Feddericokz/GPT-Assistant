@@ -1,6 +1,9 @@
 package com.github.feddericokz.gptassistant.ui.components.tool_window.context;
 
+import com.github.feddericokz.gptassistant.actions.AddToContextAction;
+import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -8,6 +11,10 @@ import java.awt.*;
 
 // Custom editor for handling button click events
 class RemoveButtonEditor extends DefaultCellEditor {
+
+    private static final Logger logger = ToolWindowLogger.getInstance(AddToContextAction.class);
+
+
     protected JButton button;
     private final String label = "Remove";
     private boolean isPushed;
@@ -18,7 +25,14 @@ class RemoveButtonEditor extends DefaultCellEditor {
         super(checkBox);
         this.table = table;
         button = new JButton(label);
-        button.addActionListener(e -> fireEditingStopped());
+        button.addActionListener(e -> {
+            try {
+                fireEditingStopped();
+            } catch (Exception ex) {
+                logger.error("Error while executing remove action.", ex);
+                throw ex;
+            }
+        });
     }
 
     public Component getTableCellEditorComponent(JTable table, Object value,

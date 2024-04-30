@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static java.awt.FlowLayout.LEFT;
 
-public class ContextClassesSelectorDialog extends DialogWrapper {
+public class ContextFilesSelectorDialog extends DialogWrapper {
 
     private final Project project;
     private final PluginSettings pluginSettings = PluginSettings.getInstance();
@@ -31,8 +31,8 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
     private JBCheckBox useGlobalContextClassesCheckbox;
 
 
-    public ContextClassesSelectorDialog(List<List<CheckboxListItem>> contextItemsList, List<String> titles,
-                                        Project project) {
+    public ContextFilesSelectorDialog(List<List<CheckboxListItem>> contextItemsList, List<String> titles,
+                                      Project project) {
         super(true);
 
         this.project = project;
@@ -102,7 +102,7 @@ public class ContextClassesSelectorDialog extends DialogWrapper {
                 // Loop through the directory recursively to find all class files
                 List<String> classesInDirectory = findAllClassesInDirectory(contextItem.contexPath());
                 returnList.addAll(classesInDirectory);
-            } else if (contextItem.itemType().equals(ContextItemType.CLASS)) {
+            } else if (contextItem.itemType().equals(ContextItemType.FILE)) {
                 // Add the class directly to the return list
                 returnList.add(contextItem.contexPath());
             }

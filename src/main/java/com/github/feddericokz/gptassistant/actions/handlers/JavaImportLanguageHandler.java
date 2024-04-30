@@ -28,6 +28,7 @@ public class JavaImportLanguageHandler implements ImportLanguageHandler {
             return;
         }
 
+        // TODO This doesn't seem to be working that well.
         // Get the import statement we want to add.
         PsiImportStatement importStatement = getPsiImportStatement(importIdentifier, javaFile.getProject());
         if (importStatement == null) {

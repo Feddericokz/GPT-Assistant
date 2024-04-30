@@ -47,8 +47,8 @@ public class ContextTab extends JPanel {
         contextTable = new JTable(tableModel) {
             @Override
             public void setValueAt(Object aValue, int row, int column) {
-                // Override to handle button click event in the future
-                if (row != 0) {
+                // If it's an action from the remove button, we don't want to set anything here.
+                if (aValue instanceof String && !aValue.equals("Remove")) {
                     super.setValueAt(aValue, row, column);
                 }
             }
