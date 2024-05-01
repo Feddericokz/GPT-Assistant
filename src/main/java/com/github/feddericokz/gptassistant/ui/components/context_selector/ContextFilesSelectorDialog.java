@@ -113,7 +113,7 @@ public class ContextFilesSelectorDialog extends DialogWrapper {
                 // Loop through the directory recursively to find all class files
                 List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contexPath());
                 returnList.addAll(classesInDirectory);
-            } else if (contextItem.itemType().equals(ContextItemType.FILE)) {
+            } else if (contextItem.itemType().equals(ContextItemType.FILE) || contextItem.itemType().equals(ContextItemType.CLASS)) {
                 // Add the class directly to the return list
                 returnList.add(contextItem.contexPath());
             }
