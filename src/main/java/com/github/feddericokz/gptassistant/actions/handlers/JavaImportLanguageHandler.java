@@ -1,5 +1,8 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
+import com.github.feddericokz.gptassistant.actions.AbstractProcessSelectionAction;
+import com.github.feddericokz.gptassistant.common.Logger;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -11,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
 public class JavaImportLanguageHandler implements ImportLanguageHandler {
+
+    private static final Logger logger = ToolWindowLogger.getInstance(JavaImportLanguageHandler.class);
 
     @Override
     public void addImport(PsiFile file, String importIdentifier) {
@@ -28,7 +33,6 @@ public class JavaImportLanguageHandler implements ImportLanguageHandler {
             return;
         }
 
-        // TODO This doesn't seem to be working that well.
         // Get the import statement we want to add.
         PsiImportStatement importStatement = getPsiImportStatement(importIdentifier, javaFile.getProject());
         if (importStatement == null) {
@@ -53,6 +57,7 @@ public class JavaImportLanguageHandler implements ImportLanguageHandler {
         PsiClass importClass = JavaPsiFacade.getInstance(project)
                 .findClass(importIdentifier, GlobalSearchScope.allScope(project));
         if (importClass == null) {
+            logger.error("Unable to find PsiClass for identifier: " + importIdentifier);
             return null;
         }
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);

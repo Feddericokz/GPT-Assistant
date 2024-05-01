@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHandler.getXmlTagContentFromResponse;
 
@@ -38,8 +39,10 @@ public class ImportsResponseHandler implements AssistantResponseHandler, Request
     }
 
     private List<String> getImportsList(List<String> assistantResponse) {
-        String imports = getXmlTagContentFromResponse(assistantResponse, "imports");
-        return Arrays.asList(imports.split(","));
+        String imports = getXmlTagContentFromResponse(assistantResponse, "imports").trim();
+        return Arrays.stream(imports.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     private static void addImportStatement(AnActionEvent actionEvent, String importIdentifier) {

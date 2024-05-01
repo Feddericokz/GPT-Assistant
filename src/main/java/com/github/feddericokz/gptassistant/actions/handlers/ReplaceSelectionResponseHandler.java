@@ -88,6 +88,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
 
     public static void updateSelection(AnActionEvent e, String updateSelection) {
         if (updateSelection != null) {
+            String sanitizedSelection = sanitizeUpdateSelection(updateSelection);
             // Get needed objects to work with.
             Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
             SelectionModel selection = editor.getSelectionModel();
@@ -95,9 +96,13 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
 
             // Wrap the document change in a WriteCommandAction
             WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
-                    document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), updateSelection)
+                    document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
             );
         }
+    }
+
+    public static String sanitizeUpdateSelection(String updateSelection) {
+        return updateSelection.replace("&lt;", "<").replace("&gt;", ">");
     }
 
 }
