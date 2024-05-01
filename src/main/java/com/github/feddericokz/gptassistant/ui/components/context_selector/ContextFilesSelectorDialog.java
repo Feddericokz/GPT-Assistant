@@ -1,8 +1,11 @@
 package com.github.feddericokz.gptassistant.ui.components.context_selector;
 
+import com.github.feddericokz.gptassistant.actions.AbstractProcessSelectionAction;
+import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
 import com.github.feddericokz.gptassistant.context.ContextItemType;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -17,13 +20,21 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.awt.FlowLayout.LEFT;
 
 public class ContextFilesSelectorDialog extends DialogWrapper {
+
+    private final Logger logger = ToolWindowLogger.getInstance(ContextFilesSelectorDialog.class);
 
     private final Project project;
     private final PluginSettings pluginSettings = PluginSettings.getInstance();
@@ -100,7 +111,7 @@ public class ContextFilesSelectorDialog extends DialogWrapper {
         for (ContextItem contextItem : contextItems) {
             if (contextItem.itemType().equals(ContextItemType.DIRECTORY)) {
                 // Loop through the directory recursively to find all class files
-                List<String> classesInDirectory = findAllClassesInDirectory(contextItem.contexPath());
+                List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contexPath());
                 returnList.addAll(classesInDirectory);
             } else if (contextItem.itemType().equals(ContextItemType.FILE)) {
                 // Add the class directly to the return list
@@ -110,35 +121,21 @@ public class ContextFilesSelectorDialog extends DialogWrapper {
         return returnList;
     }
 
-    // TODO This is not a pretty way to do this, but works for now.
-    private List<String> findAllClassesInDirectory(String directoryPath) {
-        List<String> classFiles = new ArrayList<>();
-        // Assuming a method exists to get files in a directory, including subdirectories
-        File directory = new File(directoryPath);
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    classFiles.addAll(findAllClassesInDirectory(file.getAbsolutePath()));
-                } else if (file.getName().endsWith(".java")) {
-                    VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
-                    if (virtualFile != null) {
-                        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-                        if (psiFile != null) {
-                            // We also need to strip ".src.main." from this.
-                            String classPath = psiFile.getVirtualFile().getPath()
-                                    .replace(ProjectRootManager.getInstance(project).getContentRoots()[0].getPath(), "") // Dynamically obtain the project root path
-                                    .replace(File.separatorChar, '.') // Replace system-dependent file separator with dot notation
-                                    .replace(".java", "") // Remove the file extension
-                                    .replace(".src.main.", "");
-
-                            classFiles.add(classPath);
-                        }
-                    }
-                }
+    private List<String> findAllFilesInDirectory(String directoryPathString) {
+        List<String> filePaths = new ArrayList<>();
+        try {
+            URI directoryPathURI = new URI(directoryPathString);
+            Path directoryPath = Paths.get(directoryPathURI);
+            try (Stream<Path> walkStream = Files.walk(directoryPath)) {
+                walkStream.filter(Files::isRegularFile)
+                        .forEach(path -> {
+                            filePaths.add(String.valueOf(path.toUri()));
+                        });
             }
+        } catch (Exception e) {
+            logger.error("Error while resolving files for directory url: " + directoryPathString, e);
         }
-        return classFiles;
+        return filePaths;
     }
 
 }
