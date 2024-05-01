@@ -69,6 +69,9 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
                         logger.error("No assistant selected for the project.", ex);
                         Project project = e.getRequiredData(CommonDataKeys.PROJECT);
                         Notifications.Bus.notify(getMissingAssistantNotification(project), project);
+                    } catch (RuntimeException ex) {
+                        Notifications.Bus.notify(getErrorNotification("OpenAI API error.", ex.getMessage()));
+                        logger.error("Error while processing selection", ex);
                     }
                 }).start();
 
