@@ -14,6 +14,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.project.Project;
@@ -81,10 +82,15 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
                     if (virtualFile != null) {
                         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
                         if (psiFile != null) {
-                            LanguageFileType fileType = (LanguageFileType) FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
-                            String language = fileType.getLanguage().getID();
                             String fileContent = psiFile.getText();
-                            return new AbstractMap.SimpleImmutableEntry<>(language, fileContent);
+                            FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
+                            if (fileType instanceof LanguageFileType) {
+                                LanguageFileType languageFileType = (LanguageFileType) FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
+                                String language = languageFileType.getLanguage().getID();
+                                return new AbstractMap.SimpleImmutableEntry<>(language, fileContent);
+                            } else {
+                                return new AbstractMap.SimpleImmutableEntry<>("unknown", fileContent);
+                            }
                         }
                     } else {
                         logger.warning("Unable to create virtualFile for path: " + fileUrl);
