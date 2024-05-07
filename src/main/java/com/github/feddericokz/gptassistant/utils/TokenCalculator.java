@@ -5,22 +5,31 @@ import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.*;
 import com.theokanning.openai.assistants.Assistant;
 
+import java.util.Optional;
+
 public class TokenCalculator {
     public int calculateTokens(String message) {
         EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-        EncodingType encoding = getEncodingForCurrentModel();
-        Encoding enc = registry.getEncoding(encoding);
-        IntArrayList encoded = enc.encode(message);
+        Encoding encoding = getEncodingForCurrentModel();
+        IntArrayList encoded = encoding.encode(message);
         return encoded.size();
     }
 
-    private EncodingType getEncodingForCurrentModel() {
+    private Encoding getEncodingForCurrentModel() {
+        EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
         Assistant selectedAssistant = PluginSettings.getInstance().getSelectedAssistant();
         if (selectedAssistant != null) {
             String selectedModel = selectedAssistant.getModel();
-            // <nlp> Logic to decide the encoding based on model. </nlp>
+
+            // Or get the tokenizer corresponding to a specific OpenAI model
+            Optional<Encoding> encoding = registry.getEncodingForModel(selectedModel);
+            if (encoding.isPresent()) {
+                return encoding.get();
+            }
         }
-        return EncodingType.CL100K_BASE;
+
+        // Default encoding if no model is selected
+        return registry.getEncoding(EncodingType.CL100K_BASE);
     }
 
 }
