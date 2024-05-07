@@ -1,5 +1,7 @@
 package com.github.feddericokz.gptassistant.ui.components.tool_window.log;
 
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
@@ -28,21 +30,20 @@ public class LogsTab extends JPanel {
     public void logMessage(String message, String level) {
         SimpleAttributeSet attributeSet = new SimpleAttributeSet();
         switch (level.toUpperCase()) {
-            // TODO Refactor to use JBColor?
             case "ERROR":
-                StyleConstants.setForeground(attributeSet, new Color(255, 105, 97)); // Pastel Red
+                StyleConstants.setForeground(attributeSet, new JBColor(new Color(255, 105, 97), new Color(255, 105, 97))); // Pastel Red
                 break;
             case "WARN":
-                StyleConstants.setForeground(attributeSet, new Color(255, 179, 71)); // Pastel Orange
+                StyleConstants.setForeground(attributeSet, new JBColor(new Color(255, 179, 71), new Color(255, 179, 71))); // Pastel Orange
                 break;
             case "INFO":
-                StyleConstants.setForeground(attributeSet, new Color(119, 221, 119)); // Pastel Green
+                StyleConstants.setForeground(attributeSet, new JBColor(new Color(119, 221, 119), new Color(119, 221, 119))); // Pastel Green
                 break;
             case "DEBUG":
-                StyleConstants.setForeground(attributeSet, new Color(162, 181, 205)); // Pastel Blue
+                StyleConstants.setForeground(attributeSet, new JBColor(new Color(162, 181, 205), new Color(162, 181, 205))); // Pastel Blue
                 break;
             default:
-                StyleConstants.setForeground(attributeSet, new Color(221, 221, 221)); // Pastel Grey
+                StyleConstants.setForeground(attributeSet, new JBColor(Gray._221, Gray._221)); // Pastel Grey
 
         }
         try {

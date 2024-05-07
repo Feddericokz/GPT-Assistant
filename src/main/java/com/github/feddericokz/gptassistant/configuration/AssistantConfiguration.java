@@ -16,6 +16,7 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getErrorNotification;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
 public class AssistantConfiguration implements Configurable {
 
@@ -35,7 +36,7 @@ public class AssistantConfiguration implements Configurable {
                     if (settingsService.getSelectedAssistant() != null) {
                         Assistant selectedAssistant = settingsService.getSelectedAssistant();
                         if (!existingAssistants.contains(selectedAssistant)) {
-                            // TODO Notify the user.
+                            Notifications.Bus.notify(getWarningNotification("Unavailable assistant", "Previously selected assistant doesn't exist anymore on current account."));
                             // Setting selected assistant to null if it doesn't exist anymore.
                             settingsService.setSelectedAssistant(null);
                         }
@@ -76,6 +77,9 @@ public class AssistantConfiguration implements Configurable {
         PluginSettings settingsService = PluginSettings.getInstance();
         boolean modified = !settingsService.getApiKey().equals(settingsComponent.getApiKey());
         modified = modified || !settingsService.getEnableReformatProcessedCode() == settingsComponent.getEnableReformatProcessedCode();
+        modified = modified || settingsService.getTokenThreshold() != Integer.parseInt(settingsComponent.getTokenThreshold());
+        modified = modified || settingsService.getOpenIARequestTimeoutSeconds() != Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds());
+
         return modified;
     }
 
@@ -84,6 +88,8 @@ public class AssistantConfiguration implements Configurable {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsService.setApiKey(settingsComponent.getApiKey());
         settingsService.setEnableReformatProcessedCode(settingsComponent.getEnableReformatProcessedCode());
+        settingsService.setTokenThreshold(Integer.parseInt(settingsComponent.getTokenThreshold()));
+        settingsService.setOpenIARequestTimeoutSeconds(Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds()));
     }
 
     @Override
@@ -91,6 +97,8 @@ public class AssistantConfiguration implements Configurable {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsComponent.setApiKey(settingsService.getApiKey());
         settingsComponent.setEnableReformatProcessedCode(settingsService.getEnableReformatProcessedCode());
+        settingsComponent.setTokenThreshold(String.valueOf(settingsService.getTokenThreshold()));
+        settingsComponent.setOpenIARequestTimeoutSeconds(String.valueOf(settingsService.getOpenIARequestTimeoutSeconds()));
     }
 
     @Override

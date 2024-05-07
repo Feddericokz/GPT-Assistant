@@ -43,16 +43,28 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
             try {
                 List<String> stringMessages = getMessagesForRequest(e, selection);
 
-                // TODO <nlp> Show some UI feedback while this is running.. </nlp>
-
                 new Thread(() -> {
                     try {
                         Run assistantRun = createAssistantThreadAndRun(stringMessages);
                         logger.debug("Assistant run created successfully.");
 
-                        // TODO Add configuration to enable asking for user consent on tokens before sending the request.
-
                         int tokenCount = calculateTokenCount(stringMessages);
+                        int tokenThreshold = settings.getTokenThreshold();
+
+                        if (tokenCount > tokenThreshold && tokenThreshold != 0) {
+                            int answer = JOptionPane.showConfirmDialog(null,
+                                    "About to send " + tokenCount + " tokens, do you want to proceed?",
+                                    "Token Threshold Exceeded",
+                                    JOptionPane.YES_NO_OPTION,
+                                    JOptionPane.WARNING_MESSAGE);
+
+                            if (answer != JOptionPane.YES_OPTION) {
+                                Notifications.Bus.notify(getInfoNotification("Operation cancelled.", "Operation cancelled by the user."));
+                                logger.info("Operation cancelled by the user.");
+                                return; // Stop further execution
+                            }
+                        }
+
                         Notifications.Bus.notify(getInfoNotification("Tokens.", tokenCount + " sent."));
 
                         List<String> assistantResponse = waitUntilRunCompletesAndGetAssistantResponse(assistantRun);

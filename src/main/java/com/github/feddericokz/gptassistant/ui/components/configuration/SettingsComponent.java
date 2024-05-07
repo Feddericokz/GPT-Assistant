@@ -16,6 +16,8 @@ public class SettingsComponent {
     private final JPanel mainPanel;
     private final JBTextField apiKeyTextField;
     private final JBCheckBox enableReformatProcessedCodeCheckBox;
+    private final JBTextField tokenThresholdTextField;
+    private final JBTextField openIARequestTimeoutSeconds;
 
     public SettingsComponent(PluginSettings settings) {
         // We need a field for the API Key
@@ -25,6 +27,12 @@ public class SettingsComponent {
         // We need a checkbox to ask if we should process code.
         enableReformatProcessedCodeCheckBox = new JBCheckBox();
 
+        tokenThresholdTextField = new JBTextField();
+        tokenThresholdTextField.setColumns(6);
+
+        openIARequestTimeoutSeconds = new JBTextField();
+        openIARequestTimeoutSeconds.setColumns(6);
+
         // And show the assistants we have.
         JPanel assistantsPanel = new AssistantsPanel(settings);
 
@@ -33,8 +41,10 @@ public class SettingsComponent {
         assistantsLabel.setBorder(JBUI.Borders.empty(10));
 
         mainPanel = FormBuilder.createFormBuilder()
-                .addComponent(getLabeledPanel("OpenAI API Key:",apiKeyTextField))
+                .addComponent(getLabeledPanel("OpenAI API Key:", apiKeyTextField))
                 .addComponent(getLabeledPanel("Reformat processed code:", enableReformatProcessedCodeCheckBox))
+                .addComponent(getLabeledPanel("Token Threshold", tokenThresholdTextField))
+                .addComponent(getLabeledPanel("OpenIA Timeout (seconds)", openIARequestTimeoutSeconds))
                 .addSeparator(10)
                 .addLabeledComponent(assistantsLabel, assistantsPanel, 1, true)
                 .addComponentFillVertically(new JPanel(), 0)
@@ -72,6 +82,22 @@ public class SettingsComponent {
 
     public void setEnableReformatProcessedCode(boolean selected) {
         enableReformatProcessedCodeCheckBox.setSelected(selected);
+    }
+
+    public String getTokenThreshold() {
+        return tokenThresholdTextField.getText();
+    }
+
+    public void setTokenThreshold(@NotNull String newText) {
+        tokenThresholdTextField.setText(newText);
+    }
+
+    public String getOpenIARequestTimeoutSeconds() {
+        return openIARequestTimeoutSeconds.getText();
+    }
+
+    public void setOpenIARequestTimeoutSeconds(@NotNull String newText) {
+        openIARequestTimeoutSeconds.setText(newText);
     }
 
 }

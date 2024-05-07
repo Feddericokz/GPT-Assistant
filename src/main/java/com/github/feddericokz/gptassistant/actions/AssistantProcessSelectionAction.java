@@ -51,19 +51,19 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
     public List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
         // Need to get the name of the current class.
         String currentFileUrl = getCurrentClassUrl(e);
+        String currentFileName = getCurrentClassName(e);
 
         // Need to get the names of the context classes from selection.
-        List<String> selectionContextFilesUrls = getSelectionContextFiles(e);
+        Map<String, String> selectionContextFilesUrlsMap = getSelectionContextFilesMap(e);
 
         // Get the names of the context classes of the current file.
-        List<String> fileContextFilesUrls = getFileContextFiles(e);
+        Map<String, String> fileContextFilesUrlsMap = getFileContextFilesMap(e);
 
-        Map<String, List<String>> contextFilesMap = new HashMap<>();
-        contextFilesMap.put("Current file:", Collections.singletonList(currentFileUrl));
-        contextFilesMap.put("Selection context files:", selectionContextFilesUrls);
-        contextFilesMap.put("File context files:", fileContextFilesUrls);
+        Map<String, Map<String, String>> contextFilesMap = new HashMap<>();
+        contextFilesMap.put("Current file:", Collections.singletonMap(currentFileName, currentFileUrl));
+        contextFilesMap.put("Selection context files:", selectionContextFilesUrlsMap);
+        contextFilesMap.put("File context files:", fileContextFilesUrlsMap);
 
-        // TODO The context selector now display the urls for all these files, should be more user friendly.Dec
         // Let the user choose which classes to send for context.
         List<String> contextFiles = getUserChosenContextFiles(contextFilesMap, e);
 
@@ -110,12 +110,33 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         return containingClass != null ? containingClass.getContainingFile().getVirtualFile().getUrl() : null;
     }
 
-    public static List<String> getUserChosenContextFiles(Map<String, List<String>> contextFilesMap, AnActionEvent e) throws UserCancelledException {
+    private String getCurrentClassName(AnActionEvent e) {
+        PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            throw new IllegalStateException("psiFile is null");
+        }
+        Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (editor == null) {
+            throw new IllegalStateException("Editor is null");
+        }
+        int offset = editor.getCaretModel().getOffset();
+        PsiElement elementAt = psiFile.findElementAt(offset);
+        PsiClass containingClass = PsiTreeUtil.getParentOfType(elementAt, PsiClass.class);
+        return containingClass != null ? containingClass.getQualifiedName() : null;
+    }
+
+    public static List<String> getUserChosenContextFiles(Map<String, Map<String, String>> contextFilesMap, AnActionEvent e) throws UserCancelledException {
         List<List<CheckboxListItem>> itemsLists = new ArrayList<>();
         List<String> titles = new ArrayList<>();
 
-        for (Map.Entry<String, List<String>> entry : contextFilesMap.entrySet()) {
-            itemsLists.add(entry.getValue().stream().map(CheckboxListItem::new).collect(Collectors.toList()));
+        for (Map.Entry<String, Map<String, String>> entry : contextFilesMap.entrySet()) {
+            itemsLists.add(entry.getValue().keySet()
+                    .stream()
+                    .sorted(String::compareTo)
+                    .toList()
+                    .stream()
+                    .map(CheckboxListItem::new)
+                    .collect(Collectors.toList()));
             titles.add(entry.getKey());
         }
 
@@ -124,17 +145,23 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         ContextFilesSelectorDialog dialog = new ContextFilesSelectorDialog(itemsLists, titles, project);
         dialog.show();
 
+        // Join the maps from contextFilesMap to create a single map for easier lookup.
+        Map<String, String> selectionContextFilesUrlsMap = contextFilesMap.values().stream()
+                .flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> existing));
+
         if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
             List<List<String>> selectedValues = dialog.getSelectedValues();
             return selectedValues.stream()
                     .flatMap(Collection::stream)
+                    .map(selectionContextFilesUrlsMap::get)
                     .collect(Collectors.toList());
         } else {
             throw new UserCancelledException();
         }
     }
 
-    private List<String> getSelectionContextFiles(AnActionEvent e) {
+    private Map<String, String> getSelectionContextFilesMap(AnActionEvent e) {
         // Get the current project
         Project project = e.getProject();
         if (project == null) {
@@ -176,11 +203,13 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
 
         return psiClasses.stream()
-                .map(psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl())
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(
+                        psiClass -> psiClass.getQualifiedName(),
+                        psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl()
+                ));
     }
 
-    private List<String> getFileContextFiles(AnActionEvent e) {
+    private Map<String, String> getFileContextFilesMap(AnActionEvent e) {
         Project project = e.getProject();
         if (project == null) {
             throw new IllegalStateException("Project is null");
@@ -204,8 +233,10 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
 
         return psiClasses.stream()
-                .map(psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl())
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(
+                        psiClass -> psiClass.getQualifiedName(),
+                        psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl()
+                ));
     }
 
     private List<String> getXmlTaggedMessagesForRequest(String selection, List<AbstractMap.SimpleImmutableEntry<String,String>> fileContents) {

@@ -18,7 +18,7 @@ public class TokenCalculator {
         Assistant selectedAssistant = PluginSettings.getInstance().getSelectedAssistant();
         if (selectedAssistant != null) {
             String selectedModel = selectedAssistant.getModel();
-            // TODO Logic to decide the encoding based on model.
+            // <nlp> Logic to decide the encoding based on model. </nlp>
         }
         return EncodingType.CL100K_BASE;
     }

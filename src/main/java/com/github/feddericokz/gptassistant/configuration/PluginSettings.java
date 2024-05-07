@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Service
@@ -30,6 +31,8 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         public boolean enableReformatProcessedCode = true;
         public List<Assistant> availableAssistants;
         public Assistant selectedAssistant;
+        public Integer tokensThreshold;
+        public Integer openIARequestTimeoutSeconds;
         private final List<ContextItem> contextItems = new ArrayList<>();
     }
 
@@ -48,7 +51,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     public void setApiKey(String apiKey) {
         pluginState.apiKey = apiKey;
-        OpenAIServiceCache.getInstance().cleanService();
+        OpenAIServiceCache.getInstance().clearService();
     }
 
     public String getApiKey() {
@@ -93,7 +96,14 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     }
 
     public void addContextItem(ContextItem contextItem) {
-        // TODO Should not allow adding duplicate entries.
+
+        // Ensure no duplicates based on `contexPath`. If a duplicate is found, the method will return early.
+        for (ContextItem item : pluginState.contextItems) {
+            if (Objects.equals(item.contexPath(), contextItem.contexPath())) {
+                return; // Exit function if a duplicate is found.
+            }
+        }
+
         pluginState.contextItems.add(contextItem);
         if (updateContextItemsDisplayFunction != null) {
             updateContextItemsDisplayFunction.accept(contextItem);
@@ -118,5 +128,24 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     public void setUpdateContextItemsDisplayFunction(Consumer<ContextItem> updateContextItemsDisplayFunction) {
         this.updateContextItemsDisplayFunction = updateContextItemsDisplayFunction;
+    }
+
+    public int getTokenThreshold() {
+        return pluginState.tokensThreshold == null ? 1000 : pluginState.tokensThreshold;
+    }
+
+    public void setTokenThreshold(Integer newThreshold) {
+        pluginState.tokensThreshold = newThreshold;
+    }
+
+    public int getOpenIARequestTimeoutSeconds() {
+        return pluginState.openIARequestTimeoutSeconds == null ? 60 : pluginState.openIARequestTimeoutSeconds;
+    }
+
+    public void setOpenIARequestTimeoutSeconds(Integer newTimeout) {
+        pluginState.openIARequestTimeoutSeconds = newTimeout;
+
+        // We need to rebuild the OpenAI service when this changes, so we clean the current instance from the cache.
+        OpenAIServiceCache.getInstance().clearService();
     }
 }

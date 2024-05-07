@@ -17,13 +17,13 @@ public final class OpenAIServiceCache {
 
     public OpenAiService getService() {
         if (service == null) {
-            // TODO Make timeout configurable.
-            service = new OpenAiService(PluginSettings.getInstance().getApiKey(), Duration.ofMinutes(5));
+            service = new OpenAiService(PluginSettings.getInstance().getApiKey(),
+                    Duration.ofSeconds(PluginSettings.getInstance().getOpenIARequestTimeoutSeconds()));
         }
         return service;
     }
 
-    public void cleanService() {
+    public void clearService() {
         service = null;
     }
 
