@@ -10,65 +10,89 @@ public class AssistantResponseHandlerTest {
 
     List<String> assistantResponse = Collections.singletonList("""
             <user-request>
-                Implement a method in Java that takes a random number and prints it to the console. Additionally, create a unit test for this method in a new file.
+            Create a service, a repository, and a controller for a "Settings" entity in Java, following the provided code examples.
             </user-request>
+                        
             <imports>
-                java.util.Random, org.junit.jupiter.api.Test, static org.junit.jupiter.api.Assertions.assertNotNull
+            org.springframework.data.jpa.repository.JpaRepository, org.springframework.stereotype.Repository, org.springframework.stereotype.Service, org.springframework.web.bind.annotation.RequestMapping, org.springframework.web.bind.annotation.RestController, com.fg.grow_control.entity.Setting, com.fg.grow_control.service.BasicService
             </imports>
-            <code-replacement>
-            public class SomeClass {
                         
-                public void printRandomNumber() {
-                    Random random = new Random();
-                    int randomNumber = random.nextInt();
-                    System.out.println(randomNumber);
-                }
+            <file-creation path="com/fg/grow_control/repository/SettingRepository.java">
+            package com.fg.grow_control.repository;
                         
-            }
-            </code-replacement>
-            <file-creation path="SomeClassTest.java">
-            import org.junit.jupiter.api.Test;
-            import static org.junit.jupiter.api.Assertions.assertNotNull;
+            import com.fg.grow_control.entity.Setting;
+            import org.springframework.data.jpa.repository.JpaRepository;
+            import org.springframework.stereotype.Repository;
                         
-            public class SomeClassTest {
-                        
-                @Test
-                public void testPrintRandomNumber() {
-                    SomeClass someClass = new SomeClass();
-                    someClass.printRandomNumber();
-                    // This test verifies that the method runs, but it's not practical to test random outputs
-                    assertNotNull(someClass, "SomeClass instance should not be null.");
-                }
+            @Repository
+            public interface SettingRepository extends JpaRepository<Setting, Long> {
             }
             </file-creation>
+                        
+            <file-creation path="com/fg/grow_control/service/SettingService.java">
+            package com.fg.grow_control.service;
+                        
+            import com.fg.grow_control.entity.Setting;
+            import com.fg.grow_control.repository.SettingRepository;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Service;
+                        
+            @Service
+            public class SettingService extends BasicService<Setting, Long, SettingRepository> {
+                        
+                @Autowired
+                public SettingService(SettingRepository repository) {
+                    super(repository);
+                }
+                        
+                // Add any setting-specific methods here
+            }
+            </file-creation>
+                        
+            <file-creation path="com/fg/grow_control/controller/SettingController.java">
+            package com.fg.grow_control.controller;
+                        
+            import com.fg.grow_control.entity.Setting;
+            import com.fg.grow_control.repository.SettingRepository;
+            import com.fg.grow_control.service.SettingService;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
+                        
+            @RestController
+            @RequestMapping("/settings")
+            public class SettingController extends BasicController<Setting, Long, SettingRepository, SettingService> {
+                public SettingController(SettingService service) {
+                    super(service);
+                }
+                        
+                // Add any setting-specific endpoints here
+            }
+            </file-creation>
+                        
             <steps>
-                1. Understand the user's request for implementing a method in Java to print a random number and to create a unit test for it.
-                2. Implement the method 'printRandomNumber' in the 'SomeClass' class, generating a random number and printing it to the console.
-                3. Decide to use the java.util.Random class to generate a random number.
-                4. In a new file, 'SomeClassTest.java', create a unit test named 'testPrintRandomNumber' using JUnit.
-                5. Implement the unit test to simply check if the method can be called; actual output checking is not practical due to the random nature of the output.
-                6. Import necessary classes for random number generation and unit testing.
+            1. Understand the structure and format of the provided code examples, focusing on the entity, service, repository, and controller layers.
+            2. Create the SettingRepository interface extending JpaRepository, enabling basic CRUD operations for the Setting entity.
+            3. Develop the SettingService class extending BasicService, injecting the SettingRepository to utilize its functions and potentially add more complex business logic.
+            4. Implement the SettingController REST controller, mapping basic CRUD operations and potentially more complex endpoints for the Setting entity.
+            5. Use annotations such as @Service, @Repository, and @RestController to denote the components' roles within the Spring Framework.
+            6. Map the SettingController to a specific route for API access, exemplified with "/settings".
+            7. Add placeholders for any setting-specific methods or endpoints that may be required, providing an entry point for future expansion.
             </steps>
             """);
 
-    private String fileCreationTagContent = """
-            
-            import org.junit.jupiter.api.Test;
-            import static org.junit.jupiter.api.Assertions.assertNotNull;
+    private final String fileCreationTagContent = """
+            package com.fg.grow_control.repository;
                         
-            public class SomeClassTest {
+            import com.fg.grow_control.entity.Setting;
+            import org.springframework.data.jpa.repository.JpaRepository;
+            import org.springframework.stereotype.Repository;
                         
-                @Test
-                public void testPrintRandomNumber() {
-                    SomeClass someClass = new SomeClass();
-                    someClass.printRandomNumber();
-                    // This test verifies that the method runs, but it's not practical to test random outputs
-                    assertNotNull(someClass, "SomeClass instance should not be null.");
-                }
+            @Repository
+            public interface SettingRepository extends JpaRepository<Setting, Long> {
             }
             """;
 
-    private String codeReplacementContent = """
+    private final String codeReplacementContent = """
              
             public class SomeClass {
                        
@@ -90,8 +114,12 @@ public class AssistantResponseHandlerTest {
 
     @Test
     public void testContentExtractionFromXmlTagWithAttributes() {
-        String extractedContent = AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse, "file-creation");
-        Assert.assertEquals(fileCreationTagContent, extractedContent);
+        List<String> extractedContentList = AssistantResponseHandler.getXmlTagContentListFromResponse(assistantResponse, "file-creation");
+        Assert.assertTrue(extractedContentList.get(0).contains(fileCreationTagContent));
+        Assert.assertTrue(extractedContentList.size() > 1);
+
+        String filePath = AssistantResponseHandler.getXmlAttribute(extractedContentList.get(0), "file-creation", "path");
+        Assert.assertEquals("com/fg/grow_control/repository/SettingRepository.java", filePath);
     }
 
     @Test

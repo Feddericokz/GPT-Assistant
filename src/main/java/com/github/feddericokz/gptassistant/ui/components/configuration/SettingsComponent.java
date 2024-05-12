@@ -18,6 +18,7 @@ public class SettingsComponent {
     private final JBCheckBox enableReformatProcessedCodeCheckBox;
     private final JBTextField tokenThresholdTextField;
     private final JBTextField openIARequestTimeoutSeconds;
+    private final JBTextField retrieveRunIntervalMillis;
 
     public SettingsComponent(PluginSettings settings) {
         // We need a field for the API Key
@@ -33,6 +34,9 @@ public class SettingsComponent {
         openIARequestTimeoutSeconds = new JBTextField();
         openIARequestTimeoutSeconds.setColumns(6);
 
+        retrieveRunIntervalMillis = new JBTextField();
+        retrieveRunIntervalMillis.setColumns(6);
+
         // And show the assistants we have.
         JPanel assistantsPanel = new AssistantsPanel(settings);
 
@@ -45,6 +49,7 @@ public class SettingsComponent {
                 .addComponent(getLabeledPanel("Reformat processed code:", enableReformatProcessedCodeCheckBox))
                 .addComponent(getLabeledPanel("Token Threshold", tokenThresholdTextField))
                 .addComponent(getLabeledPanel("OpenIA Timeout (seconds)", openIARequestTimeoutSeconds))
+                .addComponent(getLabeledPanel("Retrieve Run Interval (milliseconds)", retrieveRunIntervalMillis))
                 .addSeparator(10)
                 .addLabeledComponent(assistantsLabel, assistantsPanel, 1, true)
                 .addComponentFillVertically(new JPanel(), 0)
@@ -98,6 +103,14 @@ public class SettingsComponent {
 
     public void setOpenIARequestTimeoutSeconds(@NotNull String newText) {
         openIARequestTimeoutSeconds.setText(newText);
+    }
+
+    public String getRetrieveRunIntervalMillis() {
+        return retrieveRunIntervalMillis.getText();
+    }
+
+    public void setRetrieveRunIntervalMillis(@NotNull String newInterval) {
+        retrieveRunIntervalMillis.setText(newInterval);
     }
 
 }

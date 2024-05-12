@@ -14,11 +14,12 @@
         </group>
 
         <group id="code_assistant_editor" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
-            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.AssistantProcessSelectionAction"
+            <action id="coding_assistant_process_selection" class="com.github.feddericokz.gptassistant.actions.ProcessSelectionAction"
                     text="GPT: Process Selected Code" description="Make GPT process selected code."/>
+            <action id="coding_assistant_free_prompt_action_editor"  class="com.github.feddericokz.gptassistant.actions.FreePromptAction"
+                    text="GPT: Free Prompt" description="Send an instruction to GPT."/>
             <add-to-group group-id="GPTAssistantGroupEditor" anchor="last" />
         </group>
-
 
         <group id="GPTAssistantGroupProject" text="GPT Assistant" description="GPT Assistant options" popup="true">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
@@ -27,6 +28,8 @@
         <group id="code_assistant_project" text="Coding Assistant" description="Assistant that knows how to replace code selections." popup="true">
             <action id="coding_assistant_add_to_context" class="com.github.feddericokz.gptassistant.actions.AddToContextAction"
                     text="Add to Current Context" description="Adds selected class or package to the context that will be sent to the assistant."/>
+            <action id="coding_assistant_free_prompt_action_project"  class="com.github.feddericokz.gptassistant.actions.FreePromptAction"
+                    text="GPT: Free Prompt" description="Send an instruction to GPT."/>
             <add-to-group group-id="GPTAssistantGroupProject" anchor="last" />
         </group>
     </actions>

@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
+import static com.github.feddericokz.gptassistant.utils.ActionsUtils.sanitizeCode;
+
 public class ReplaceSelectionResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
 
     @Override
@@ -88,7 +90,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
 
     public static void updateSelection(AnActionEvent e, String updateSelection) {
         if (updateSelection != null) {
-            String sanitizedSelection = sanitizeUpdateSelection(updateSelection);
+            String sanitizedSelection = sanitizeCode(updateSelection);
             // Get needed objects to work with.
             Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
             SelectionModel selection = editor.getSelectionModel();
@@ -101,8 +103,6 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         }
     }
 
-    public static String sanitizeUpdateSelection(String updateSelection) {
-        return updateSelection.replace("&lt;", "<").replace("&gt;", ">");
-    }
+
 
 }

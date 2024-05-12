@@ -14,63 +14,70 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static com.github.feddericokz.gptassistant.utils.ActionsUtils.sanitizeCode;
+
 public class FileCreationResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
 
     @Override
     public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) {
         // Extract the <file-creation> content and path attribute from the assistant response
-        String fileCreationTagContent = AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse, "file-creation");
-        if (!fileCreationTagContent.isEmpty()) {
-            String filePath = AssistantResponseHandler.getXmlAttributeFromResponses(assistantResponse, "file-creation", "path");
+        List<String> fileCreationTagContentList = AssistantResponseHandler.getXmlTagContentListFromResponse(assistantResponse, "file-creation");
 
-            updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "file-creation"));
+        // TODO Improve this to look better.
+        updateToolWindowContent(fileCreationTagContentList.toString());
 
-            // Verify if the content and path are extracted successfully
-            if (filePath != null) {
-                // Define the path where the file needs to be created
-                Path path = Paths.get(filePath);
+        fileCreationTagContentList.forEach(fileCreationTagContent -> {
+            if (!fileCreationTagContent.isEmpty()) {
+                String filePath = AssistantResponseHandler.getXmlAttribute(fileCreationTagContent, "file-creation", "path");
 
-                // Run the action to create and write to the file
-                WriteCommandAction.runWriteCommandAction(e.getProject(), () -> {
-                    try {
-                        Path parentPath = path.getParent();
-                        Path createFilePath;
+                // Verify if the content and path are extracted successfully
+                if (filePath != null) {
+                    // Define the path where the file needs to be created
+                    Path path = Paths.get(filePath);
 
-                        // Retrieve the project's base directory from the AnActionEvent object
-                        VirtualFile baseDir = e.getProject().getBaseDir();
-                        Path sourcesRootPath = Paths.get(baseDir.getPath());
+                    // Run the action to create and write to the file
+                    WriteCommandAction.runWriteCommandAction(e.getProject(), () -> {
+                        try {
+                            Path parentPath = path.getParent();
+                            Path createFilePath;
 
-                        if (parentPath != null) {
-                            parentPath = sourcesRootPath.resolve(parentPath);
-                            Path createdDir = Files.createDirectories(parentPath);
+                            // Retrieve the project's base directory from the AnActionEvent object
+                            VirtualFile baseDir = e.getProject().getBaseDir();
+                            Path sourcesRootPath = Paths.get(baseDir.getPath());
 
-                            if (Files.exists(createdDir)) {
-                                System.out.println("Directory exists or has been successfully created.");
+                            if (parentPath != null) {
+                                parentPath = sourcesRootPath.resolve(parentPath);
+                                Path createdDir = Files.createDirectories(parentPath);
+
+                                if (Files.exists(createdDir)) {
+                                    System.out.println("Directory exists or has been successfully created.");
+                                } else {
+                                    System.out.println("Failed to create the directory.");
+                                }
+
+                                createFilePath = parentPath.resolve(path.getFileName());
                             } else {
-                                System.out.println("Failed to create the directory.");
+                                // Adjust file creation to occur in the sources root if the parent directory was null
+                                createFilePath = sourcesRootPath.resolve(path.getFileName());
                             }
 
-                            createFilePath = parentPath.resolve(path.getFileName());
-                        } else {
-                            // Adjust file creation to occur in the sources root if the parent directory was null
-                            createFilePath = sourcesRootPath.resolve(path.getFileName());
+                            // Write the content into the file, excluding the tag itself to get the pure content
+                            String fileContent = fileCreationTagContent.replaceFirst("<[^>]*>", "")
+                                    .replaceAll("</file-creation>", "");
+
+                            Files.writeString(createFilePath, sanitizeCode(fileContent));
+
+                            // Refresh the filesystem to ensure the file is displayed in the project structure
+                            VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+                        } catch (IOException ex) {
+                            logger.error("Error while processing file-creation response.", ex);
                         }
-
-                        // Write the content into the file, excluding the tag itself to get the pure content
-                        String fileContent = fileCreationTagContent.replaceFirst("<file-creation>", "")
-                                .replaceAll("</file-creation>", "");
-                        Files.writeString(createFilePath, fileContent);
-
-                        // Refresh the filesystem to ensure the file is displayed in the project structure
-                        VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
-                    } catch (IOException ex) {
-                        logger.error("Error while processing file-creation response.", ex);
-                    }
-                });
+                    });
+                }
+            } else {
+                logger.info("No files to create.");
             }
-        } else {
-            logger.info("No files to create.");
-        }
+        });
     }
 
     @Override

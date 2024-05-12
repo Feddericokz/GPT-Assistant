@@ -15,6 +15,8 @@ import com.theokanning.openai.threads.ThreadRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
+
 public class AssistantUtils {
 
     public static Assistant createSoftwareDevelopmentAssistant() {
@@ -81,8 +83,8 @@ public class AssistantUtils {
                 break;
             }
             try {
-                // TODO This might freeze the whole ide until completes, ideally it shouldn't freeze.
-                java.lang.Thread.sleep(1000);
+                // TODO Make this configurable.
+                sleep(1000);
             } catch (InterruptedException e) {
                 java.lang.Thread.currentThread().interrupt();
                 throw new RuntimeException("The thread waiting for the run to complete was interrupted", e);
@@ -100,7 +102,10 @@ public class AssistantUtils {
         return messageList
                 .stream()
                 .filter(m -> "assistant".equals(m.getRole()))
-                // We're expecting a single content per message. // TODO Are we?
+                // We're expecting a single content per message.
+                // TODO So far, this is working as a new thread for every request, sending the whole context everytime.
+                //  It probably would be more cost effective, for working sessions where we will be using the assistant to work on the same files,
+                //  to maintain a thread and send context just once.
                 .map(message -> message.getContent().get(0).getText().getValue())
                 .collect(Collectors.toList());
     }

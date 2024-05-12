@@ -1,52 +1,27 @@
 package com.github.feddericokz.gptassistant.ui.components.context_selector;
 
-import com.github.feddericokz.gptassistant.actions.AbstractProcessSelectionAction;
-import com.github.feddericokz.gptassistant.common.Logger;
-import com.github.feddericokz.gptassistant.configuration.PluginSettings;
-import com.github.feddericokz.gptassistant.context.ContextItem;
-import com.github.feddericokz.gptassistant.context.ContextItemType;
-import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.SeparatorComponent;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.github.feddericokz.gptassistant.utils.ContextUtils.getGlobalContextValues;
 import static java.awt.FlowLayout.LEFT;
 
 public class ContextFilesSelectorDialog extends DialogWrapper {
 
-    private final Logger logger = ToolWindowLogger.getInstance(ContextFilesSelectorDialog.class);
-
-    private final Project project;
-    private final PluginSettings pluginSettings = PluginSettings.getInstance();
     private final List<CollapsiblePanel> collapsiblePanels;
     private JBCheckBox useGlobalContextClassesCheckbox;
 
 
-    public ContextFilesSelectorDialog(List<List<CheckboxListItem>> contextItemsList, List<String> titles,
-                                      Project project) {
+    public ContextFilesSelectorDialog(List<List<CheckboxListItem>> contextItemsList, List<String> titles) {
         super(true);
-
-        this.project = project;
 
         setTitle("Context Selector");
 
@@ -105,37 +80,5 @@ public class ContextFilesSelectorDialog extends DialogWrapper {
     }
 
 
-    private List<String> getGlobalContextValues() {
-        List<String> returnList = new ArrayList<>();
-        List<ContextItem> contextItems = pluginSettings.getContextItems();
-        for (ContextItem contextItem : contextItems) {
-            if (contextItem.itemType().equals(ContextItemType.DIRECTORY)) {
-                // Loop through the directory recursively to find all class files
-                List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contexPath());
-                returnList.addAll(classesInDirectory);
-            } else if (contextItem.itemType().equals(ContextItemType.FILE) || contextItem.itemType().equals(ContextItemType.CLASS)) {
-                // Add the class directly to the return list
-                returnList.add(contextItem.contexPath());
-            }
-        }
-        return returnList;
-    }
-
-    private List<String> findAllFilesInDirectory(String directoryPathString) {
-        List<String> filePaths = new ArrayList<>();
-        try {
-            URI directoryPathURI = new URI(directoryPathString);
-            Path directoryPath = Paths.get(directoryPathURI);
-            try (Stream<Path> walkStream = Files.walk(directoryPath)) {
-                walkStream.filter(Files::isRegularFile)
-                        .forEach(path -> {
-                            filePaths.add(String.valueOf(path.toUri()));
-                        });
-            }
-        } catch (Exception e) {
-            logger.error("Error while resolving files for directory url: " + directoryPathString, e);
-        }
-        return filePaths;
-    }
 
 }

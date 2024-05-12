@@ -33,6 +33,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         public Assistant selectedAssistant;
         public Integer tokensThreshold;
         public Integer openIARequestTimeoutSeconds;
+        public Integer retrieveRunIntervalMillis;
         private final List<ContextItem> contextItems = new ArrayList<>();
     }
 
@@ -147,5 +148,13 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
         // We need to rebuild the OpenAI service when this changes, so we clean the current instance from the cache.
         OpenAIServiceCache.getInstance().clearService();
+    }
+
+    public int getRetrieveRunInterval() {
+        return pluginState.retrieveRunIntervalMillis == null ? 1000 : pluginState.retrieveRunIntervalMillis;
+    }
+
+    public void setRetrieveRunInterval(Integer newInterval) {
+        pluginState.retrieveRunIntervalMillis = newInterval;
     }
 }

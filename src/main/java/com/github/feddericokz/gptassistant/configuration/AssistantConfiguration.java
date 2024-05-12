@@ -72,6 +72,7 @@ public class AssistantConfiguration implements Configurable {
         return settingsComponent.getPanel();
     }
 
+    //<nlp> Please add to these methods an implementation for RetrieveRunInterval configuration </nlp>
     @Override
     public boolean isModified() {
         PluginSettings settingsService = PluginSettings.getInstance();

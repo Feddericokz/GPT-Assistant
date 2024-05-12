@@ -23,19 +23,23 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
+import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getFileContentFromNames;
+import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getXmlTaggedMessagesForRequest;
 
-public class AssistantProcessSelectionAction extends AbstractProcessSelectionAction {
+public class ProcessSelectionAction extends AbstractAssistantAction {
 
-    private static final Logger logger = ToolWindowLogger.getInstance(AssistantProcessSelectionAction.class);
+    // TODO Could use some logs in these methods not that I've moved stuff around.
+    private static final Logger logger = ToolWindowLogger.getInstance(ProcessSelectionAction.class);
 
     List<AssistantResponseHandler> handlers = new ArrayList<>();
 
-    public AssistantProcessSelectionAction() {
+    public ProcessSelectionAction() {
         handlers.add(new ReplaceSelectionResponseHandler());
         handlers.add(new ImportsResponseHandler());
         handlers.add(new FileCreationResponseHandler());
@@ -69,36 +73,9 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
         List<String> contextFiles = getUserChosenContextFiles(contextFilesMap, e);
 
         // Get the actual content of the classes.
-        List<AbstractMap.SimpleImmutableEntry<String,String>> fileContents = getFileContentFromNames(contextFiles, e.getProject());
+        List<Map<String,String>> fileContents = getFileContentFromNames(contextFiles, e.getProject());
 
-        return getXmlTaggedMessagesForRequest(selection, fileContents);
-    }
-
-    private List<AbstractMap.SimpleImmutableEntry<String,String>> getFileContentFromNames(List<String> fileNames, Project project) {
-
-        return fileNames.stream()
-                .map(fileUrl -> {
-                    VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
-                    if (virtualFile != null) {
-                        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-                        if (psiFile != null) {
-                            String fileContent = psiFile.getText();
-                            FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
-                            if (fileType instanceof LanguageFileType) {
-                                LanguageFileType languageFileType = (LanguageFileType) FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
-                                String language = languageFileType.getLanguage().getID();
-                                return new AbstractMap.SimpleImmutableEntry<>(language, fileContent);
-                            } else {
-                                return new AbstractMap.SimpleImmutableEntry<>("unknown", fileContent);
-                            }
-                        }
-                    } else {
-                        logger.warning("Unable to create virtualFile for path: " + fileUrl);
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return getXmlTaggedMessagesForRequest(selection, fileContents, true);
     }
 
     private String getCurrentClassUrl(AnActionEvent e) {
@@ -148,7 +125,7 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
 
         Project project = e.getRequiredData(CommonDataKeys.PROJECT);
 
-        ContextFilesSelectorDialog dialog = new ContextFilesSelectorDialog(itemsLists, titles, project);
+        ContextFilesSelectorDialog dialog = new ContextFilesSelectorDialog(itemsLists, titles);
         dialog.show();
 
         // Join the maps from contextFilesMap to create a single map for easier lookup.
@@ -245,31 +222,15 @@ public class AssistantProcessSelectionAction extends AbstractProcessSelectionAct
                 ));
     }
 
-    private List<String> getXmlTaggedMessagesForRequest(String selection, List<AbstractMap.SimpleImmutableEntry<String,String>> fileContents) {
-
-        List<String> contextMessages = fileContents.stream()
-                .map(fileContent -> xmlTagText(fileContent.getValue(), "context",
-                        Collections.singletonMap("language", fileContent.getKey())))
-                .toList();
-
-        List<String> requestMessages
-                = new ArrayList<>(Collections.singletonList(xmlTagText(selection, "prompt",
-                Collections.singletonMap("isSelection", "true"))));
-
-        requestMessages.addAll(contextMessages);
-
-        return requestMessages;
+    @Override
+    protected String getUserPrompt(@NotNull AnActionEvent e) {
+        return getSelectedText(e);
     }
 
-    private String xmlTagText(String text, String tag, Map<String, String> attributes) {
-        // Construct the opening tag with attributes.
-        String openingTag = "<" + tag + attributes.entrySet()
-                .stream()
-                .map(entry -> " " + entry.getKey() + "=\"" + entry.getValue() + "\"")
-                .collect(Collectors.joining("")) + ">";
-        String closingTag = "</" + tag + ">";
-        // Return formatted string with tags and text.
-        return openingTag + System.lineSeparator() + text + System.lineSeparator() + closingTag;
+    private static String getSelectedText(AnActionEvent e) {
+        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+        SelectionModel selectionModel = editor.getSelectionModel();
+        return selectionModel.getSelectedText();
     }
 
 }

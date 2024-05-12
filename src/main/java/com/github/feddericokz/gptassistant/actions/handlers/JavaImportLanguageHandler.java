@@ -1,6 +1,5 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
-import com.github.feddericokz.gptassistant.actions.AbstractProcessSelectionAction;
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.intellij.notification.Notifications;

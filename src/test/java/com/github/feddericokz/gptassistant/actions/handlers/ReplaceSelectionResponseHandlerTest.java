@@ -1,5 +1,6 @@
 package com.github.feddericokz.gptassistant.actions.handlers;
 
+import com.github.feddericokz.gptassistant.utils.ActionsUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,7 +36,7 @@ public class ReplaceSelectionResponseHandlerTest {
 
     @Test
     public void testSanitizeSelection() {
-        String sanitizedString = ReplaceSelectionResponseHandler.sanitizeUpdateSelection(replaceResponseContent);
+        String sanitizedString = ActionsUtils.sanitizeCode(replaceResponseContent);
         Assert.assertFalse(sanitizedString.contains("&lt;"));
         Assert.assertFalse(sanitizedString.contains("&gt;"));
     }

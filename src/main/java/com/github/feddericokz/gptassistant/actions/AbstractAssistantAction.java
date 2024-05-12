@@ -10,8 +10,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.project.Project;
 import com.theokanning.openai.runs.Run;
 import org.jetbrains.annotations.NotNull;
@@ -20,28 +18,23 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
+import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.createAssistantThreadAndRun;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.waitUntilRunCompletesAndGetAssistantResponse;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public abstract class AbstractProcessSelectionAction extends AnAction {
+public abstract class AbstractAssistantAction extends AnAction {
 
-    private final Logger logger = ToolWindowLogger.getInstance(AbstractProcessSelectionAction.class);
+    private final Logger logger = ToolWindowLogger.getInstance(AbstractAssistantAction.class);
 
     protected final PluginSettings settings = PluginSettings.getInstance();
 
-    protected abstract List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
-
-    public abstract List<AssistantResponseHandler> getResponseHandlersList();
-
-
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        logger.info("Starting process selection action.");
+        logger.info("Starting " + this.getClass().getSimpleName() + " action.");
         if (!isBlank(settings.getApiKey())) {
-            String selection = getSelectedText(e);
             try {
-                List<String> stringMessages = getMessagesForRequest(e, selection);
+                List<String> stringMessages = getMessagesForRequest(e, getUserPrompt(e));
 
                 new Thread(() -> {
                     try {
@@ -73,9 +66,13 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
                         // Now I need to hand this off to handlers to do their thing on the UI thread.
                         SwingUtilities.invokeLater(() -> {
                             getResponseHandlersList().forEach(assistantResponseHandler -> {
-                                assistantResponseHandler.handleResponse(e, assistantResponse);
+                                try {
+                                    assistantResponseHandler.handleResponse(e, assistantResponse);
+                                } catch (Exception ex) {
+                                    logger.error("Error on response handler. "
+                                            + assistantResponseHandler.getClass().getSimpleName(), ex);
+                                }
                             });
-                            logger.info("Responses handled successfully.");
                         });
                     } catch (AssistantNotSelectedException ex) {
                         logger.error("No assistant selected for the project.", ex);
@@ -99,13 +96,6 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
         }
     }
 
-
-    private static String getSelectedText(AnActionEvent e) {
-        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-        SelectionModel selectionModel = editor.getSelectionModel();
-        return selectionModel.getSelectedText();
-    }
-
     private int calculateTokenCount(List<String>messages){
         TokenCalculator tokenCalculator = new TokenCalculator();
         int totalTokens = 0;
@@ -117,5 +107,11 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
         logger.info("Total tokens for all messages: " + totalTokens);
         return totalTokens;
     }
+
+    protected abstract List<AssistantResponseHandler> getResponseHandlersList();
+
+    protected abstract List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException;
+
+    protected abstract String getUserPrompt(@NotNull AnActionEvent e);
 
 }
