@@ -8,10 +8,8 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.feddericokz.gptassistant.context.ContextItemType.*;
@@ -25,31 +23,25 @@ public class AddToContextAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        PsiElement element = e.getData(CommonDataKeys.PSI_ELEMENT);
-        if (element == null) throw new IllegalStateException("Element should not be null.");
-        String classOrPackageName = null;
+        //Retrieve an array of selected virtual files
+        VirtualFile[] virtualFiles = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
+        if (virtualFiles == null || virtualFiles.length == 0)
+            throw new IllegalStateException("Files should not be null or empty.");
 
-        if (element instanceof PsiClass) {
-            classOrPackageName = element.getContainingFile().getVirtualFile().getUrl();
-            settings.addContextItem(new ContextItem(CLASS, classOrPackageName));
-        } else if (element instanceof PsiDirectory) {
-            classOrPackageName = ((PsiDirectory) element).getVirtualFile().getUrl();
-            settings.addContextItem(new ContextItem(DIRECTORY, classOrPackageName));
-        } else if (element instanceof PsiFile) {
-            classOrPackageName = ((PsiFile) element).getVirtualFile().getUrl();
-            settings.addContextItem(new ContextItem(FILE, classOrPackageName));
-        }
-
-        // New check for null to handle non-class/package elements gracefully
-        if (classOrPackageName == null) {
-            logger.warning("The selected element is neither a class, file nor a directory. Selected: " + element);
-            Notifications.Bus.notify(
-                    getWarningNotification(
-                            "Unsupported Element Selected",
-                            "The selected element is neither a class, file nor a directory. Please select a valid element."
-                    ), e.getProject());
-        } else {
-            logger.info("Added " + classOrPackageName + " to current assistant context.");
+        for (VirtualFile file : virtualFiles) {
+            String url = file.getUrl();
+            // Determine the type for context addition
+            if (file.isDirectory()) {
+                settings.addContextItem(new ContextItem(DIRECTORY, url));
+            } else {
+                // Attempt to identify if the file is a class or a general file
+                PsiFile psiFile = PsiManager.getInstance(e.getProject()).findFile(file);
+                if (psiFile instanceof PsiClass) {
+                    settings.addContextItem(new ContextItem(CLASS, url));
+                } else {
+                    settings.addContextItem(new ContextItem(FILE, url));
+                }
+            }
         }
     }
 
