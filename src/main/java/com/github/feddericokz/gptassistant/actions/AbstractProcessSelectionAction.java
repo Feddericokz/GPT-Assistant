@@ -89,6 +89,8 @@ public abstract class AbstractProcessSelectionAction extends AnAction {
 
             } catch (UserCancelledException ex) {
                 logger.warning("Action was cancelled by the user.", ex);
+            } catch (Exception ex1) {
+                logger.error("Error while processing request: " + ex1.getMessage(), ex1);
             }
         } else {
             logger.info("API Key is missing.");
