@@ -22,28 +22,32 @@ public class ActionsUtils {
 
         return fileNames.stream()
                 .map(fileUrl -> {
-                    VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
-                    if (virtualFile != null) {
-                        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-                        if (psiFile != null) {
-                            String fileContent = psiFile.getText();
-                            FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
-                            Map<String, String> returnMap = new HashMap<>();
-                            if (fileType instanceof LanguageFileType) {
-                                LanguageFileType languageFileType = (LanguageFileType) FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
-                                String language = languageFileType.getLanguage().getID();
+                    logger.debug("fileUrl: " + fileUrl);
+                    if (fileUrl != null) {
+                        VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
+                        if (virtualFile != null) {
+                            PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+                            if (psiFile != null) {
+                                String fileContent = psiFile.getText();
+                                FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
+                                Map<String, String> returnMap = new HashMap<>();
+                                if (fileType instanceof LanguageFileType) {
+                                    LanguageFileType languageFileType = (LanguageFileType) FileTypeManager.getInstance().getFileTypeByFile(psiFile.getVirtualFile());
+                                    String language = languageFileType.getLanguage().getID();
 
-                                returnMap.put("language", language);
-                            } else {
-                                returnMap.put("language", "unknown");
+                                    returnMap.put("language", language);
+                                } else {
+                                    returnMap.put("language", "unknown");
+                                }
+                                returnMap.put("content", fileContent);
+                                returnMap.put("fileUrl", fileUrl);
+                                return returnMap;
                             }
-                            returnMap.put("content", fileContent);
-                            returnMap.put("fileUrl", fileUrl);
-                            return returnMap;
+                        } else {
+                            logger.warning("Unable to create virtualFile for path: " + fileUrl);
                         }
-                    } else {
-                        logger.warning("Unable to create virtualFile for path: " + fileUrl);
                     }
+                    logger.debug("Returning null..");
                     return null;
                 })
                 .filter(Objects::nonNull)
