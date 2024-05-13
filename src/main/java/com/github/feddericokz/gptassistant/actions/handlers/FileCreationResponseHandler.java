@@ -4,6 +4,7 @@ import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowC
 import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.impl.stores.IProjectStore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 
 import static com.github.feddericokz.gptassistant.utils.ActionsUtils.sanitizeCode;
 
@@ -42,11 +44,13 @@ public class FileCreationResponseHandler implements AssistantResponseHandler, Re
                             Path createFilePath;
 
                             // Retrieve the project's base directory from the AnActionEvent object
-                            VirtualFile baseDir = e.getProject().getBaseDir();
-                            Path sourcesRootPath = Paths.get(baseDir.getPath());
+                            IProjectStore projectStore = Objects.requireNonNull(e.getProject())
+                                    .getComponent(IProjectStore.class);
+
+                            Path projectBasePath = projectStore.getProjectBasePath();
 
                             if (parentPath != null) {
-                                parentPath = sourcesRootPath.resolve(parentPath);
+                                parentPath = projectBasePath.resolve(parentPath);
                                 Path createdDir = Files.createDirectories(parentPath);
 
                                 if (Files.exists(createdDir)) {
@@ -58,7 +62,7 @@ public class FileCreationResponseHandler implements AssistantResponseHandler, Re
                                 createFilePath = parentPath.resolve(path.getFileName());
                             } else {
                                 // Adjust file creation to occur in the sources root if the parent directory was null
-                                createFilePath = sourcesRootPath.resolve(path.getFileName());
+                                createFilePath = projectBasePath.resolve(path.getFileName());
                             }
 
                             // Write the content into the file, excluding the tag itself to get the pure content

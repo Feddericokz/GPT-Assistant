@@ -12,8 +12,13 @@ public interface RequestInfoContentAware {
     default void updateToolWindowContent(String update) {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
-            SwingUtilities.invokeLater(() -> updateContent(content, update));
+            SwingUtilities.invokeLater(() -> directUpdateContent(content, update));
         }
     }
 
+    private void directUpdateContent(ToolWindowContent content, String update) {
+        updateContent(content, update);
+    }
+
 }
+
