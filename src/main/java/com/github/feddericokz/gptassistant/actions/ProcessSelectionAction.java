@@ -137,7 +137,12 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
             List<List<String>> selectedValues = dialog.getSelectedValues();
             return selectedValues.stream()
                     .flatMap(Collection::stream)
-                    .map(selectionContextFilesUrlsMap::get)
+                    .map(key -> {
+                        // TODO Explain this.
+                        String value = selectionContextFilesUrlsMap.get(key);
+                        if (value != null) return value;
+                        return key;
+                    })
                     .collect(Collectors.toList());
         } else {
             throw new UserCancelledException();
