@@ -17,7 +17,11 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-This plugin lets you create a coding Assistant using your OpenIA API key, which can process selections of code, and replace it following instructions in the comments.
+This plugin creates a coding Assistant using your OpenIA API key, which can:
+* Process selections of code, and replace it following instructions in the comments.
+* Create new files if the task requires them to be completed.
+
+It allows to easily add context to requests made to the assistant, while also allowing the user to carefully choose what gets sent as context.
 <!-- Plugin description end -->
 
 ## Installation
