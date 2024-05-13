@@ -23,10 +23,10 @@ public class FileCreationResponseHandler implements AssistantResponseHandler, Re
         // Extract the <file-creation> content and path attribute from the assistant response
         List<String> fileCreationTagContentList = AssistantResponseHandler.getXmlTagContentListFromResponse(assistantResponse, "file-creation");
 
-        // TODO Improve this to look better.
-        updateToolWindowContent(fileCreationTagContentList.toString());
+        StringBuilder toolWindowContentStringBuilder = new StringBuilder();
 
         fileCreationTagContentList.forEach(fileCreationTagContent -> {
+            toolWindowContentStringBuilder.append(fileCreationTagContent).append("\n");
             if (!fileCreationTagContent.isEmpty()) {
                 String filePath = AssistantResponseHandler.getXmlAttribute(fileCreationTagContent, "file-creation", "path");
 
@@ -78,6 +78,8 @@ public class FileCreationResponseHandler implements AssistantResponseHandler, Re
                 logger.info("No files to create.");
             }
         });
+
+        updateToolWindowContent(toolWindowContentStringBuilder.toString());
     }
 
     @Override

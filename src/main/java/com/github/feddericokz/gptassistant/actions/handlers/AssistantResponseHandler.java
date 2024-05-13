@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -46,7 +47,7 @@ public interface AssistantResponseHandler {
         return ""; // Return empty string if the attribute is not found.
     }
 
-    void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse);
+    void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) throws InterruptedException, InvocationTargetException;
 
 
     static String getXmlTagContentFromResponse(List<String> assistantResponses, String tagName) {

@@ -72,7 +72,6 @@ public class AssistantConfiguration implements Configurable {
         return settingsComponent.getPanel();
     }
 
-    //<nlp> Please add to these methods an implementation for RetrieveRunInterval configuration </nlp>
     @Override
     public boolean isModified() {
         PluginSettings settingsService = PluginSettings.getInstance();
@@ -80,6 +79,7 @@ public class AssistantConfiguration implements Configurable {
         modified = modified || !settingsService.getEnableReformatProcessedCode() == settingsComponent.getEnableReformatProcessedCode();
         modified = modified || settingsService.getTokenThreshold() != Integer.parseInt(settingsComponent.getTokenThreshold());
         modified = modified || settingsService.getOpenIARequestTimeoutSeconds() != Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds());
+        modified = modified || settingsService.getRetrieveRunInterval() != Integer.parseInt(settingsComponent.getRetrieveRunIntervalMillis());
 
         return modified;
     }
@@ -91,6 +91,7 @@ public class AssistantConfiguration implements Configurable {
         settingsService.setEnableReformatProcessedCode(settingsComponent.getEnableReformatProcessedCode());
         settingsService.setTokenThreshold(Integer.parseInt(settingsComponent.getTokenThreshold()));
         settingsService.setOpenIARequestTimeoutSeconds(Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds()));
+        settingsService.setRetrieveRunInterval(Integer.parseInt(settingsComponent.getRetrieveRunIntervalMillis()));
     }
 
     @Override
@@ -100,6 +101,7 @@ public class AssistantConfiguration implements Configurable {
         settingsComponent.setEnableReformatProcessedCode(settingsService.getEnableReformatProcessedCode());
         settingsComponent.setTokenThreshold(String.valueOf(settingsService.getTokenThreshold()));
         settingsComponent.setOpenIARequestTimeoutSeconds(String.valueOf(settingsService.getOpenIARequestTimeoutSeconds()));
+        settingsComponent.setRetrieveRunIntervalMillis(String.valueOf(settingsService.getRetrieveRunInterval()));
     }
 
     @Override

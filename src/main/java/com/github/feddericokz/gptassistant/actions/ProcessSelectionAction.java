@@ -34,7 +34,8 @@ import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getXmlTagge
 
 public class ProcessSelectionAction extends AbstractAssistantAction {
 
-    // TODO Could use some logs in these methods not that I've moved stuff around.
+    // <nlp> Add useful logs with the right log levels to the methods of this class </nlp>
+
     private static final Logger logger = ToolWindowLogger.getInstance(ProcessSelectionAction.class);
 
     List<AssistantResponseHandler> handlers = new ArrayList<>();
@@ -138,7 +139,8 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
             return selectedValues.stream()
                     .flatMap(Collection::stream)
                     .map(key -> {
-                        // TODO Explain this.
+                        // If the key is not in this map, it means it is a file obtained from the global context.
+                        //  It should already be a file url, so we just return the key.
                         String value = selectionContextFilesUrlsMap.get(key);
                         if (value != null) return value;
                         return key;

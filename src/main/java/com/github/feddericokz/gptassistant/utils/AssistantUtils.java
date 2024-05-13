@@ -83,8 +83,7 @@ public class AssistantUtils {
                 break;
             }
             try {
-                // TODO Make this configurable.
-                sleep(1000);
+                sleep(PluginSettings.getInstance().getRetrieveRunInterval());
             } catch (InterruptedException e) {
                 java.lang.Thread.currentThread().interrupt();
                 throw new RuntimeException("The thread waiting for the run to complete was interrupted", e);

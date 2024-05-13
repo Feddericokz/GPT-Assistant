@@ -16,6 +16,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +26,7 @@ import static com.github.feddericokz.gptassistant.utils.ActionsUtils.sanitizeCod
 public class ReplaceSelectionResponseHandler implements AssistantResponseHandler, RequestInfoContentAware {
 
     @Override
-    public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) {
+    public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) throws InterruptedException, InvocationTargetException {
         updateSelection(e, getUpdateSelection(assistantResponse));
         updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "code-replacement"));
         reformatCodeIfEnabled(e);
@@ -55,7 +57,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         return xmlTag.substring(start, end).trim();
     }
 
-    private void reformatCodeIfEnabled(AnActionEvent e) {
+    private void reformatCodeIfEnabled(AnActionEvent e) throws InterruptedException, InvocationTargetException {
         if (isEnableReformatSelectedCode()) {
             reformatSelection(e);
         }
@@ -65,7 +67,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         return PluginSettings.getInstance().getEnableReformatProcessedCode();
     }
 
-    private static void reformatSelection(AnActionEvent e) {
+    private static void reformatSelection(AnActionEvent e) throws InterruptedException, InvocationTargetException {
         // Get needed objects to work with.
         Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
         Document document = editor.getDocument();
@@ -82,13 +84,15 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         // Get the CodeStyleManager instance
         CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
 
-        // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
-        WriteCommandAction.runWriteCommandAction(project, () ->
-                codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
-        );
+        SwingUtilities.invokeAndWait(() -> {
+            // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
+            WriteCommandAction.runWriteCommandAction(project, () ->
+                    codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
+            );
+        });
     }
 
-    public static void updateSelection(AnActionEvent e, String updateSelection) {
+    public static void updateSelection(AnActionEvent e, String updateSelection) throws InterruptedException, InvocationTargetException {
         if (updateSelection != null) {
             String sanitizedSelection = sanitizeCode(updateSelection);
             // Get needed objects to work with.
@@ -96,10 +100,12 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
             SelectionModel selection = editor.getSelectionModel();
             Document document = editor.getDocument();
 
-            // Wrap the document change in a WriteCommandAction
-            WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
-                    document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
-            );
+            SwingUtilities.invokeAndWait(() -> {
+                // Wrap the document change in a WriteCommandAction
+                WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
+                        document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
+                );
+            });
         }
     }
 
