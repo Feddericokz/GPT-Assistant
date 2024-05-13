@@ -22,7 +22,9 @@ public class FreePromptAction extends AnAction {
 
     public FreePromptAction() {
         handlers.add(new ReplaceSelectionResponseHandler());
-        handlers.add(new ImportsResponseHandler());
+        // Imports response handler does not run on FreePrompt for now since it only makes sense when replacing a selection.
+        //  In the future if we improve it to also contain where the import should be placed it could be enabled.
+        //handlers.add(new ImportsResponseHandler());
         handlers.add(new FileCreationResponseHandler());
         handlers.add(new StepsResponseHandler());
         handlers.add(new UserRequestResponseHandler());

@@ -21,34 +21,6 @@ public interface AssistantResponseHandler {
 
     Logger logger = ToolWindowLogger.getInstance(AssistantResponseHandler.class);
 
-    static String getXmlAttributeFromResponses(List<String> assistantResponses, String tagName, String attributeName) {
-        // Pattern to match the tagName with any attributes.
-        Pattern fullTagPattern = Pattern.compile(
-                "<" + Pattern.quote(tagName) + "(\\s+[\\w\\W]*?)?>[\\s\\S]*?</" + Pattern.quote(tagName) + ">",
-                Pattern.DOTALL);
-
-        for (String response : assistantResponses) {
-            Matcher matcher = fullTagPattern.matcher(response);
-            if (matcher.find()) {
-                String matchedFullTag = matcher.group(0);
-                try {
-                    // Parsing the matchedTag to a Document to easily extract attributes.
-                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder builder = factory.newDocumentBuilder();
-                    ByteArrayInputStream input = new ByteArrayInputStream(matchedFullTag.getBytes("UTF-8"));
-                    Document doc = builder.parse(input);
-
-                    NamedNodeMap attrs = doc.getDocumentElement().getAttributes();
-                    Node nodeAttr = attrs.getNamedItem(attributeName);
-                    return nodeAttr != null ? nodeAttr.getNodeValue() : "";
-                } catch (Exception e) {
-                    logger.error("Error while parsing assistant response.", e);
-                }
-            }
-        }
-        return ""; // Return empty string if not found or error occurred.
-    }
-
     static String getXmlAttribute(String tagWithContent, String tagName, String attributeName) {
         // Pattern to match the tagName with any attributes.
         Pattern fullTagPattern = Pattern.compile(

@@ -93,24 +93,15 @@ public class AssistantResponseHandlerTest {
             """;
 
     private final String codeReplacementContent = """
-             
-            public class SomeClass {
-                       
-                public void printRandomNumber() {
-                    Random random = new Random();
-                    int randomNumber = random.nextInt();
-                    System.out.println(randomNumber);
-                }
-                        
-            }
+            
+            1. Understand the structure and format of the provided code examples, focusing on the entity, service, repository, and controller layers.
+            2. Create the SettingRepository interface extending JpaRepository, enabling basic CRUD operations for the Setting entity.
+            3. Develop the SettingService class extending BasicService, injecting the SettingRepository to utilize its functions and potentially add more complex business logic.
+            4. Implement the SettingController REST controller, mapping basic CRUD operations and potentially more complex endpoints for the Setting entity.
+            5. Use annotations such as @Service, @Repository, and @RestController to denote the components' roles within the Spring Framework.
+            6. Map the SettingController to a specific route for API access, exemplified with "/settings".
+            7. Add placeholders for any setting-specific methods or endpoints that may be required, providing an entry point for future expansion.
             """;
-
-    @Test
-    public void testAttributeExtractionFromXmlTag() {
-        String attributeValue = AssistantResponseHandler.getXmlAttributeFromResponses(assistantResponse,
-                "file-creation", "path");
-        Assert.assertEquals("SomeClassTest.java", attributeValue);
-    }
 
     @Test
     public void testContentExtractionFromXmlTagWithAttributes() {
@@ -124,7 +115,7 @@ public class AssistantResponseHandlerTest {
 
     @Test
     public void testContentExtractionFromXmlTagWithoutAttributes() {
-        String extractedContent = AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse, "code-replacement");
+        String extractedContent = AssistantResponseHandler.getXmlTagContentFromResponse(assistantResponse, "steps");
         Assert.assertEquals(codeReplacementContent, extractedContent);
     }
 
