@@ -3,6 +3,7 @@ package com.github.feddericokz.gptassistant.utils;
 import com.github.feddericokz.gptassistant.configuration.OpenAIServiceCache;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.configuration.Prompts;
+import com.github.feddericokz.gptassistant.utils.exceptions.AssistantNotSelectedException;
 import com.theokanning.openai.DeleteResult;
 import com.theokanning.openai.assistants.Assistant;
 import com.theokanning.openai.assistants.AssistantRequest;

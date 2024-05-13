@@ -4,8 +4,9 @@ import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHan
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
-import com.github.feddericokz.gptassistant.utils.AssistantNotSelectedException;
+import com.github.feddericokz.gptassistant.utils.exceptions.AssistantNotSelectedException;
 import com.github.feddericokz.gptassistant.utils.TokenCalculator;
+import com.github.feddericokz.gptassistant.utils.exceptions.UserCancelledException;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
