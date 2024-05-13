@@ -31,9 +31,9 @@ public class ToolWindowContent extends JPanel {
 
         // Initialize tabbed pane and add tabs
         JTabbedPane tabbedPane = new JBTabbedPane();
-        tabbedPane.addTab("Logs", logScrollPane);
-        tabbedPane.addTab("Context", contextScrollPane);
         tabbedPane.addTab("Request Info", requestInfoScrollPane);
+        tabbedPane.addTab("Context", contextScrollPane);
+        tabbedPane.addTab("Logs", logScrollPane);
 
         // Configure panel layout and add the tabbed pane
         setLayout(new BorderLayout());

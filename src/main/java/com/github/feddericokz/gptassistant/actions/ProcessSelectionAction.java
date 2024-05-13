@@ -34,8 +34,6 @@ import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getXmlTagge
 
 public class ProcessSelectionAction extends AbstractAssistantAction {
 
-    // <nlp> Add useful logs with the right log levels to the methods of this class </nlp>
-
     private static final Logger logger = ToolWindowLogger.getInstance(ProcessSelectionAction.class);
 
     List<AssistantResponseHandler> handlers = new ArrayList<>();
@@ -55,15 +53,19 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
 
     @Override
     public List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
+        logger.debug("getMessagesForRequest: Entry - processing request with selection: " + selection);
         // Need to get the name of the current class.
         String currentFileUrl = getCurrentClassUrl(e);
         String currentFileName = getCurrentClassName(e);
+        logger.debug("getMessagesForRequest: Current class URL: " + currentFileUrl + ", class name: " + currentFileName);
 
         // Need to get the names of the context classes from selection.
         Map<String, String> selectionContextFilesUrlsMap = getSelectionContextFilesMap(e);
+        logger.debug("getMessagesForRequest: Selection context files count: " + selectionContextFilesUrlsMap.size());
 
         // Get the names of the context classes of the current file.
         Map<String, String> fileContextFilesUrlsMap = getFileContextFilesMap(e);
+        logger.debug("getMessagesForRequest: File context files count: " + fileContextFilesUrlsMap.size());
 
         Map<String, Map<String, String>> contextFilesMap = new HashMap<>();
         contextFilesMap.put("Current file:", Collections.singletonMap(currentFileName, currentFileUrl));
@@ -72,11 +74,15 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
 
         // Let the user choose which classes to send for context.
         List<String> contextFiles = getUserChosenContextFiles(contextFilesMap, e);
+        logger.info("getMessagesForRequest: User selected " + contextFiles.size() + " context files");
 
         // Get the actual content of the classes.
-        List<Map<String,String>> fileContents = getFileContentFromNames(contextFiles, e.getProject());
+        List<Map<String, String>> fileContents = getFileContentFromNames(contextFiles, e.getProject());
+        logger.debug("getMessagesForRequest: Obtained content for selected context files");
 
-        return getXmlTaggedMessagesForRequest(selection, fileContents, true);
+        List<String> messages = getXmlTaggedMessagesForRequest(selection, fileContents, true);
+        logger.info("getMessagesForRequest: Returning " + messages.size() + " messages for request");
+        return messages;
     }
 
     private String getCurrentClassUrl(AnActionEvent e) {

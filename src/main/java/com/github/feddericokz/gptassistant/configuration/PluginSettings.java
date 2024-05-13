@@ -124,7 +124,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     public void clearContextItems() {
         pluginState.contextItems.clear();
-        // TODO function to clear UI
+        // TODO Need to add a UI option to clear the whole context at once.
     }
 
     public void setUpdateContextItemsDisplayFunction(Consumer<ContextItem> updateContextItemsDisplayFunction) {
