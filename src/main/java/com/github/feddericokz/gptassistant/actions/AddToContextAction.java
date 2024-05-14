@@ -4,16 +4,16 @@ import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.feddericokz.gptassistant.context.ContextItemType.*;
-import static com.github.feddericokz.gptassistant.notifications.Notifications.getWarningNotification;
 
 public class AddToContextAction extends AnAction {
 

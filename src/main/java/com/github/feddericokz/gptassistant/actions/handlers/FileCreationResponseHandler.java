@@ -5,7 +5,6 @@ import com.github.feddericokz.gptassistant.ui.components.tool_window.request_inf
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.impl.stores.IProjectStore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 

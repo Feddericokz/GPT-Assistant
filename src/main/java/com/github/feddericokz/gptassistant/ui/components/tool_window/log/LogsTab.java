@@ -49,7 +49,7 @@ public class LogsTab extends JPanel {
         try {
             logDoc.insertString(logDoc.getLength(), message + "\n", attributeSet);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error while trying to log into the logs assistant tab.", e);
         }
         logPane.setCaretPosition(logDoc.getLength());
     }

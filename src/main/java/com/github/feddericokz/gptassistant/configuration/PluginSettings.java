@@ -7,6 +7,7 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.theokanning.openai.assistants.Assistant;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -24,6 +25,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     private GPTAssistantPluginState pluginState = new GPTAssistantPluginState();
 
+    @Setter
     private Consumer<ContextItem> updateContextItemsDisplayFunction;
 
     public static class GPTAssistantPluginState {
@@ -125,10 +127,6 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     public void clearContextItems() {
         pluginState.contextItems.clear();
         // TODO Need to add a UI option to clear the whole context at once.
-    }
-
-    public void setUpdateContextItemsDisplayFunction(Consumer<ContextItem> updateContextItemsDisplayFunction) {
-        this.updateContextItemsDisplayFunction = updateContextItemsDisplayFunction;
     }
 
     public int getTokenThreshold() {

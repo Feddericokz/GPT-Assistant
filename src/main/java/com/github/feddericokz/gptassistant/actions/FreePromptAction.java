@@ -9,7 +9,10 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getFileContentFromNames;
 import static com.github.feddericokz.gptassistant.utils.ActionsUtils.getXmlTaggedMessagesForRequest;

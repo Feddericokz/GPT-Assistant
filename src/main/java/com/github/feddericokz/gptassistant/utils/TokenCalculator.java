@@ -2,7 +2,10 @@ package com.github.feddericokz.gptassistant.utils;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.knuddels.jtokkit.Encodings;
-import com.knuddels.jtokkit.api.*;
+import com.knuddels.jtokkit.api.Encoding;
+import com.knuddels.jtokkit.api.EncodingRegistry;
+import com.knuddels.jtokkit.api.EncodingType;
+import com.knuddels.jtokkit.api.IntArrayList;
 import com.theokanning.openai.assistants.Assistant;
 
 import java.util.Optional;

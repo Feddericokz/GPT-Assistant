@@ -1,7 +1,5 @@
 package com.github.feddericokz.gptassistant.ui.components.free_prompt;
 
-import lombok.Getter;
-
 import javax.swing.*;
 import java.awt.*;
 

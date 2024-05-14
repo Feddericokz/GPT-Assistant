@@ -4,8 +4,8 @@ import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHan
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
-import com.github.feddericokz.gptassistant.utils.exceptions.AssistantNotSelectedException;
 import com.github.feddericokz.gptassistant.utils.TokenCalculator;
+import com.github.feddericokz.gptassistant.utils.exceptions.AssistantNotSelectedException;
 import com.github.feddericokz.gptassistant.utils.exceptions.UserCancelledException;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -19,7 +19,6 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
-import static com.github.feddericokz.gptassistant.notifications.Notifications.getMissingApiKeyNotification;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.createAssistantThreadAndRun;
 import static com.github.feddericokz.gptassistant.utils.AssistantUtils.waitUntilRunCompletesAndGetAssistantResponse;
 import static org.apache.commons.lang3.StringUtils.isBlank;

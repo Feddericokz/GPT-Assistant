@@ -12,7 +12,6 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
 import com.theokanning.openai.assistants.Assistant;
-import com.theokanning.openai.utils.TikTokensUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

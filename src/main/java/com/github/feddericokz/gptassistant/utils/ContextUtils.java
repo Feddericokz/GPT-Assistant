@@ -4,7 +4,6 @@ import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
 import com.github.feddericokz.gptassistant.context.ContextItemType;
-import com.github.feddericokz.gptassistant.ui.components.context_selector.ContextFilesSelectorDialog;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 
 import java.net.URI;

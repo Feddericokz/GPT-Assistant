@@ -10,11 +10,10 @@ import java.util.List;
 
 public class ContextTab extends JPanel {
 
-    private PluginSettings settings = PluginSettings.getInstance();
     private final JTable contextTable;
 
     public ContextTab() {
-        List<ContextItem> contextItems = settings.getContextItems();
+        List<ContextItem> contextItems = PluginSettings.getInstance().getContextItems();
 
         // Extending column names to include a "Remove" button column for each row
         String[] columnNames = {"Item Type", "Context Path", "Remove"};
@@ -70,7 +69,7 @@ public class ContextTab extends JPanel {
         add(contextTable, BorderLayout.CENTER);
 
         // Set the callback to update the component.
-        settings.setUpdateContextItemsDisplayFunction(this::addContextItemToTable);
+        PluginSettings.getInstance().setUpdateContextItemsDisplayFunction(this::addContextItemToTable);
     }
 
     public void addContextItemToTable(ContextItem item) {

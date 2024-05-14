@@ -12,12 +12,17 @@ public interface RequestInfoContentAware {
     default void updateToolWindowContent(String update) {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
-            SwingUtilities.invokeLater(() -> internalUpdateContent(content, update));
+            SwingUtilities.invokeLater(internalUpdateContent(content, update));
         }
     }
 
-    default void internalUpdateContent(ToolWindowContent content, String update) {
-        updateContent(content, update);
+    /*
+     * What an ugly hack, verification fails with error:
+     *
+     * Method com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware.updateToolWindowContent(String update) : void contains an *invokeinterface* instruction referencing a private method com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware.lambda$updateToolWindowContent$0(ToolWindowContent content, String update) : void. This can lead to **IncompatibleClassChangeError** exception at runtime.
+     */
+    default Runnable internalUpdateContent(ToolWindowContent content, String update) {
+        return () -> updateContent(content, update);
     }
 
 }
