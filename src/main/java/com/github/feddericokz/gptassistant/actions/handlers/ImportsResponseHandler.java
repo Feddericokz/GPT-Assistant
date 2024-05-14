@@ -3,7 +3,6 @@ package com.github.feddericokz.gptassistant.actions.handlers;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.intellij.lang.Language;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
@@ -63,7 +62,7 @@ public class ImportsResponseHandler implements AssistantResponseHandler, Request
 
     private static ImportLanguageHandler getLanguageHandler(Language language) {
         // Return the appropriate handler based on the language
-        if (language.is(JavaLanguage.INSTANCE)) {
+        if (language.getDisplayName().equals("Java")) {
             return new JavaImportLanguageHandler();
         }
         // ... handlers for other languages
