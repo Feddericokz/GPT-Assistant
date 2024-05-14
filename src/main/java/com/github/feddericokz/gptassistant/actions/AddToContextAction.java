@@ -8,9 +8,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+/*import com.intellij.psi.PsiClass;*/
+/*import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;*/
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.feddericokz.gptassistant.context.ContextItemType.*;
@@ -34,13 +34,7 @@ public class AddToContextAction extends AnAction {
             if (file.isDirectory()) {
                 settings.addContextItem(new ContextItem(DIRECTORY, url));
             } else {
-                // Attempt to identify if the file is a class or a general file
-                PsiFile psiFile = PsiManager.getInstance(e.getProject()).findFile(file);
-                if (psiFile instanceof PsiClass) {
-                    settings.addContextItem(new ContextItem(CLASS, url));
-                } else {
-                    settings.addContextItem(new ContextItem(FILE, url));
-                }
+                settings.addContextItem(new ContextItem(FILE, url));
             }
         }
     }

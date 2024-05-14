@@ -5,6 +5,8 @@ import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowC
 import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -75,8 +77,10 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         SelectionModel selection = editor.getSelectionModel();
         PsiFile file = Objects.requireNonNull(PsiDocumentManager.getInstance(project).getPsiFile(document));
 
-        // Ensure the document is committed
-        PsiDocumentManager.getInstance(project).commitDocument(document);
+        ApplicationManager.getApplication().invokeLater(() -> {
+            // Ensure the document is committed
+            PsiDocumentManager.getInstance(project).commitDocument(document);
+        }, ModalityState.defaultModalityState());
 
         // Define the range to reformat
         TextRange rangeToReformat = new TextRange(selection.getSelectionStart(), selection.getSelectionEnd());
@@ -84,12 +88,12 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         // Get the CodeStyleManager instance
         CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
 
-        SwingUtilities.invokeAndWait(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
             WriteCommandAction.runWriteCommandAction(project, () ->
                     codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
             );
-        });
+        }, ModalityState.defaultModalityState());
     }
 
     public static void updateSelection(AnActionEvent e, String updateSelection) throws InterruptedException, InvocationTargetException {
@@ -100,12 +104,12 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
             SelectionModel selection = editor.getSelectionModel();
             Document document = editor.getDocument();
 
-            SwingUtilities.invokeAndWait(() -> {
+            ApplicationManager.getApplication().invokeLater(() -> {
                 // Wrap the document change in a WriteCommandAction
                 WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
                         document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
                 );
-            });
+            }, ModalityState.defaultModalityState());
         }
     }
 

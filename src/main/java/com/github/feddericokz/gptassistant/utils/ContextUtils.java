@@ -26,7 +26,7 @@ public class ContextUtils {
                 // Loop through the directory recursively to find all class files
                 List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contexPath());
                 returnList.addAll(classesInDirectory);
-            } else if (contextItem.itemType().equals(ContextItemType.FILE) || contextItem.itemType().equals(ContextItemType.CLASS)) {
+            } else if (contextItem.itemType().equals(ContextItemType.FILE)) {
                 // Add the class directly to the return list
                 returnList.add(contextItem.contexPath());
             }

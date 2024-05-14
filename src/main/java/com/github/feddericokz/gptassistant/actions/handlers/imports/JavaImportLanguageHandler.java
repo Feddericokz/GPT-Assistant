@@ -1,4 +1,4 @@
-package com.github.feddericokz.gptassistant.actions.handlers;
+package com.github.feddericokz.gptassistant.actions.handlers.imports;
 
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
@@ -48,6 +48,11 @@ public class JavaImportLanguageHandler implements ImportLanguageHandler {
                 importList.add(importStatement);
             }
         });
+    }
+
+    @Override
+    public String getLanguageIdentifierString() {
+        return "Java";
     }
 
     @Nullable

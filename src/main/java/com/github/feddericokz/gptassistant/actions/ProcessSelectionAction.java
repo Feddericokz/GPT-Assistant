@@ -1,6 +1,7 @@
 package com.github.feddericokz.gptassistant.actions;
 
 import com.github.feddericokz.gptassistant.actions.handlers.*;
+import com.github.feddericokz.gptassistant.actions.handlers.imports.ImportsResponseHandler;
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.ui.components.context_selector.CheckboxListItem;
 import com.github.feddericokz.gptassistant.ui.components.context_selector.ContextFilesSelectorDialog;
@@ -55,7 +56,7 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         logger.debug("getMessagesForRequest: Entry - processing request with selection: " + selection);
         // Need to get the name of the current class.
         String currentFileUrl = getCurrentClassUrl(e);
-        String currentFileName = getCurrentClassName(e);
+        String currentFileName = getCurrentFileName(e);
         logger.debug("getMessagesForRequest: Current class URL: " + currentFileUrl + ", class name: " + currentFileName);
 
         // Need to get the names of the context classes from selection.
@@ -95,11 +96,12 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         }
         int offset = editor.getCaretModel().getOffset();
         PsiElement elementAt = psiFile.findElementAt(offset);
-        PsiClass containingClass = PsiTreeUtil.getParentOfType(elementAt, PsiClass.class);
-        return containingClass != null ? containingClass.getContainingFile().getVirtualFile().getUrl() : null;
+
+        // Assuming PsiFile represents the class if we're avoiding PsiClass usage.
+        return elementAt != null ? elementAt.getContainingFile().getVirtualFile().getUrl() : null;
     }
 
-    private String getCurrentClassName(AnActionEvent e) {
+    private String getCurrentFileName(AnActionEvent e) {
         PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
         if (psiFile == null) {
             throw new IllegalStateException("psiFile is null");
@@ -110,8 +112,8 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         }
         int offset = editor.getCaretModel().getOffset();
         PsiElement elementAt = psiFile.findElementAt(offset);
-        PsiClass containingClass = PsiTreeUtil.getParentOfType(elementAt, PsiClass.class);
-        return containingClass != null ? containingClass.getQualifiedName() : null;
+
+        return elementAt != null ? elementAt.getContainingFile().getVirtualFile().getName() : null;
     }
 
     public static List<String> getUserChosenContextFiles(Map<String, Map<String, String>> contextFilesMap, AnActionEvent e) throws UserCancelledException {
