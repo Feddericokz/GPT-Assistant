@@ -20,6 +20,7 @@
 This plugin creates a coding Assistant using your OpenIA API key, which can:
 * Process selections of code, and replace it following instructions in the comments.
 * Create new files if the task requires them to be completed.
+<br/>
 
 It allows to easily add context to requests made to the assistant:
 * Menu context actions to add files as context from the project tree
