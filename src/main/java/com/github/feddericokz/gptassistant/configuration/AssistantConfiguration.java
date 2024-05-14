@@ -8,7 +8,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.theokanning.openai.ListSearchParameters;
 import com.theokanning.openai.OpenAiResponse;
 import com.theokanning.openai.assistants.Assistant;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
