@@ -53,16 +53,18 @@ public class ImportsResponseHandler implements AssistantResponseHandler, Request
     private static void addImportStatement(AnActionEvent actionEvent, String importIdentifier) {
         Editor editor = actionEvent.getRequiredData(CommonDataKeys.EDITOR);
         Project project = editor.getProject();
-        PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+        if (project != null) {
+            PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
 
-        if (psiFile == null) {
-            return;
-        }
+            if (psiFile == null) {
+                return;
+            }
 
-        ImportLanguageHandler handler = getLanguageHandler(psiFile.getLanguage());
+            ImportLanguageHandler handler = getLanguageHandler(psiFile.getLanguage());
 
-        if (handler != null) {
-            handler.addImport(psiFile, importIdentifier);
+            if (handler != null) {
+                handler.addImport(psiFile, importIdentifier);
+            }
         }
     }
 

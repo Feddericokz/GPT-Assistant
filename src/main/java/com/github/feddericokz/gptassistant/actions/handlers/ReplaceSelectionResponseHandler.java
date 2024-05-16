@@ -18,7 +18,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;

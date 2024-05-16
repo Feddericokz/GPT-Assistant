@@ -104,6 +104,5 @@ public class Prompts {
             Compliance and Verification:
                 - After processing the user request, review your response to ensure compliance with the rules.
                 - Reflect on your response to check for clarity, completeness, and adherence to best practices.
-            
             """;
 }

@@ -234,14 +234,17 @@ public class AssistantsPanel extends JPanel {
 
                 // Select another one automatically.
                 if (!settings.getAvailableAssistants().isEmpty()) {
-                    // Naive approach, select the first element on the list.
-                    settings.setSelectedAssistant(settings.getAvailableAssistants().get(0));
+                    Assistant firstAvailableAssistant = settings.getAvailableAssistants().get(0);
+                    if (firstAvailableAssistant != null) {
+                        // Naive approach, select the first element on the list.
+                        settings.setSelectedAssistant(firstAvailableAssistant);
 
-                    // Need to mark the assistant as selected in the UI.
-                    JComponent selectedAssistantButtonPanel
-                            = selectedButtonsPanelsMap.get(settings.getSelectedAssistant().getId());
-                    if (selectedAssistantButtonPanel instanceof SelectButtonPanel) {
-                        ((SelectButtonPanel) selectedAssistantButtonPanel).setSelected();
+                        // Need to mark the assistant as selected in the UI.
+                        JComponent selectedAssistantButtonPanel
+                                = selectedButtonsPanelsMap.get(firstAvailableAssistant.getId());
+                        if (selectedAssistantButtonPanel instanceof SelectButtonPanel) {
+                            ((SelectButtonPanel) selectedAssistantButtonPanel).setSelected();
+                        }
                     }
                 }
             }

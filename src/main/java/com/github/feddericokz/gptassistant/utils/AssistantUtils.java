@@ -84,6 +84,7 @@ public class AssistantUtils {
                 break;
             }
             try {
+                //noinspection BusyWait
                 sleep(PluginSettings.getInstance().getRetrieveRunInterval());
             } catch (InterruptedException e) {
                 java.lang.Thread.currentThread().interrupt();

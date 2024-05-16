@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,7 +24,7 @@ public interface AssistantResponseHandler {
     static String getXmlAttribute(String tagWithContent, String tagName, String attributeName) {
         // Pattern to match the tagName with any attributes.
         Pattern fullTagPattern = Pattern.compile(
-                "<" + Pattern.quote(tagName) + "([\\s]+[^>]*?)?>[\\s\\S]*?</" + Pattern.quote(tagName) + ">",
+                "<" + Pattern.quote(tagName) + "(\\s+[^>]*?)?>[\\s\\S]*?</" + Pattern.quote(tagName) + ">",
                 Pattern.DOTALL);
 
         // Pattern to extract the specified attributeName's value within the tag.
@@ -54,7 +55,7 @@ public interface AssistantResponseHandler {
             // Parsing the matchedTag to a Document to easily extract attributes.
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            ByteArrayInputStream input = new ByteArrayInputStream(matchedFullTag.getBytes("UTF-8"));
+            ByteArrayInputStream input = new ByteArrayInputStream(matchedFullTag.getBytes(StandardCharsets.UTF_8));
             Document doc = builder.parse(input);
 
             Node desiredNode = doc.getElementsByTagName(tagName).item(0);
