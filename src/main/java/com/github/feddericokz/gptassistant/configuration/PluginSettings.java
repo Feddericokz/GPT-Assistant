@@ -23,6 +23,10 @@ import java.util.function.Consumer;
 )
 public final class PluginSettings implements PersistentStateComponent<PluginSettings.GPTAssistantPluginState> {
 
+    public static final int RETRIEVE_RUN_INTERVAL_MILLIS_DEFAULT = 1000;
+    public static final int OPEN_AI_REQUEST_TIMEOUT_SECONDS_DEFAULT = 60;
+    public static final int TOKEN_THRESHOLD_DEFAULT = 1000;
+
     private GPTAssistantPluginState pluginState = new GPTAssistantPluginState();
 
     @Setter
@@ -37,6 +41,12 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
         public Integer openIARequestTimeoutSeconds;
         public Integer retrieveRunIntervalMillis;
         private final List<ContextItem> contextItems = new ArrayList<>();
+    }
+
+    public static void resetSettings() {
+        PluginSettings instance = getInstance();
+        GPTAssistantPluginState newState = new GPTAssistantPluginState();
+        instance.loadState(newState);
     }
 
     public static PluginSettings getInstance() {
@@ -102,7 +112,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
         // Ensure no duplicates based on `contexPath`. If a duplicate is found, the method will return early.
         for (ContextItem item : pluginState.contextItems) {
-            if (Objects.equals(item.contexPath(), contextItem.contexPath())) {
+            if (Objects.equals(item.contextPath(), contextItem.contextPath())) {
                 return; // Exit function if a duplicate is found.
             }
         }
@@ -115,7 +125,7 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
 
     public void removeContextItem(String path) {
         List<ContextItem> toRemoveList = pluginState.contextItems.stream()
-                .filter(contextItem -> contextItem.contexPath().equals(path))
+                .filter(contextItem -> contextItem.contextPath().equals(path))
                 .toList();
         pluginState.contextItems.removeAll(toRemoveList);
     }
@@ -130,7 +140,8 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     }
 
     public int getTokenThreshold() {
-        return pluginState.tokensThreshold == null ? 1000 : pluginState.tokensThreshold;
+        return pluginState.tokensThreshold == null
+                ? TOKEN_THRESHOLD_DEFAULT : pluginState.tokensThreshold;
     }
 
     public void setTokenThreshold(Integer newThreshold) {
@@ -138,7 +149,8 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     }
 
     public int getOpenIARequestTimeoutSeconds() {
-        return pluginState.openIARequestTimeoutSeconds == null ? 60 : pluginState.openIARequestTimeoutSeconds;
+        return pluginState.openIARequestTimeoutSeconds == null
+                ? OPEN_AI_REQUEST_TIMEOUT_SECONDS_DEFAULT : pluginState.openIARequestTimeoutSeconds;
     }
 
     public void setOpenIARequestTimeoutSeconds(Integer newTimeout) {
@@ -149,7 +161,8 @@ public final class PluginSettings implements PersistentStateComponent<PluginSett
     }
 
     public int getRetrieveRunInterval() {
-        return pluginState.retrieveRunIntervalMillis == null ? 1000 : pluginState.retrieveRunIntervalMillis;
+        return pluginState.retrieveRunIntervalMillis == null
+                ? RETRIEVE_RUN_INTERVAL_MILLIS_DEFAULT : pluginState.retrieveRunIntervalMillis;
     }
 
     public void setRetrieveRunInterval(Integer newInterval) {

@@ -76,10 +76,10 @@ public class AssistantConfiguration implements Configurable {
     public boolean isModified() {
         PluginSettings settingsService = PluginSettings.getInstance();
         boolean modified = !settingsService.getApiKey().equals(settingsComponent.getApiKey());
-        modified = modified || !settingsService.getEnableReformatProcessedCode() == settingsComponent.getEnableReformatProcessedCode();
-        modified = modified || settingsService.getTokenThreshold() != Integer.parseInt(settingsComponent.getTokenThreshold());
-        modified = modified || settingsService.getOpenIARequestTimeoutSeconds() != Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds());
-        modified = modified || settingsService.getRetrieveRunInterval() != Integer.parseInt(settingsComponent.getRetrieveRunIntervalMillis());
+        modified = modified || settingsService.getEnableReformatProcessedCode() != settingsComponent.getEnableReformatProcessedCode();
+        modified = modified || !String.valueOf(settingsService.getTokenThreshold()).equals(settingsComponent.getTokenThreshold());
+        modified = modified || !String.valueOf(settingsService.getOpenIARequestTimeoutSeconds()).equals(settingsComponent.getOpenIARequestTimeoutSeconds());
+        modified = modified || !String.valueOf(settingsService.getRetrieveRunInterval()).equals(settingsComponent.getRetrieveRunIntervalMillis());
 
         return modified;
     }
@@ -89,9 +89,21 @@ public class AssistantConfiguration implements Configurable {
         PluginSettings settingsService = PluginSettings.getInstance();
         settingsService.setApiKey(settingsComponent.getApiKey());
         settingsService.setEnableReformatProcessedCode(settingsComponent.getEnableReformatProcessedCode());
-        settingsService.setTokenThreshold(Integer.parseInt(settingsComponent.getTokenThreshold()));
-        settingsService.setOpenIARequestTimeoutSeconds(Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds()));
-        settingsService.setRetrieveRunInterval(Integer.parseInt(settingsComponent.getRetrieveRunIntervalMillis()));
+        try {
+            settingsService.setTokenThreshold(Integer.parseInt(settingsComponent.getTokenThreshold()));
+        } catch (NumberFormatException e) {
+            settingsService.setTokenThreshold(PluginSettings.TOKEN_THRESHOLD_DEFAULT);
+        }
+        try {
+            settingsService.setOpenIARequestTimeoutSeconds(Integer.parseInt(settingsComponent.getOpenIARequestTimeoutSeconds()));
+        } catch (NumberFormatException e) {
+            settingsService.setOpenIARequestTimeoutSeconds(PluginSettings.OPEN_AI_REQUEST_TIMEOUT_SECONDS_DEFAULT);
+        }
+        try {
+            settingsService.setRetrieveRunInterval(Integer.parseInt(settingsComponent.getRetrieveRunIntervalMillis()));
+        } catch (NumberFormatException e) {
+            settingsService.setRetrieveRunInterval(PluginSettings.RETRIEVE_RUN_INTERVAL_MILLIS_DEFAULT);
+        }
     }
 
     @Override

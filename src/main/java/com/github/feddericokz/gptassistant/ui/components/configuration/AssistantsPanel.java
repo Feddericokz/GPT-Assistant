@@ -51,7 +51,7 @@ public class AssistantsPanel extends JPanel {
 
     // Map to hold a reference to the selected buttons that use a card layout.
     private final Map<String, JPanel> selectedButtonsPanelsMap = new HashMap<>();
-    private final JPanel assistantsListPanel;
+    private JPanel assistantsListPanel;
 
     private final Map<String, JPanel> idToPanelObjectMap = new HashMap<>();
 
@@ -61,6 +61,19 @@ public class AssistantsPanel extends JPanel {
         // Going to use BoxLayout for the main container.
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
+        assistantsListPanel = getAssistantsListPanel(settings);
+
+        // Need a more general actions panel.
+        JPanel assistantActionsCardLayoutPanel = getAssistantActionsCardLayoutPanel();
+
+        // Add to main
+        this.add(assistantsListPanel);
+        this.add(assistantActionsCardLayoutPanel);
+    }
+
+    @NotNull
+    private JPanel getAssistantsListPanel(PluginSettings settings) {
+        final JPanel assistantsListPanel;
         assistantsListPanel = new JPanel();
         assistantsListPanel.setLayout(new BoxLayout(assistantsListPanel, BoxLayout.PAGE_AXIS));
 
@@ -70,13 +83,12 @@ public class AssistantsPanel extends JPanel {
             // Save the reference so we can delete it later.
             idToPanelObjectMap.put(availableAssistant.getId(), assistantPanel);
         }
+        return assistantsListPanel;
+    }
 
-        // Need a more general actions panel.
-        JPanel assistantActionsCardLayoutPanel = getAssistantActionsCardLayoutPanel();
-
-        // Add to main
-        this.add(assistantsListPanel);
-        this.add(assistantActionsCardLayoutPanel);
+    public void reset() {
+        idToPanelObjectMap.clear();
+        assistantsListPanel = getAssistantsListPanel(PluginSettings.getInstance());
     }
 
     @NotNull
