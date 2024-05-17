@@ -24,11 +24,11 @@ public class ContextUtils {
         for (ContextItem contextItem : contextItems) {
             if (contextItem.itemType().equals(ContextItemType.DIRECTORY)) {
                 // Loop through the directory recursively to find all class files
-                List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contexPath());
+                List<String> classesInDirectory = findAllFilesInDirectory(contextItem.contextPath());
                 returnList.addAll(classesInDirectory);
             } else if (contextItem.itemType().equals(ContextItemType.FILE)) {
                 // Add the class directly to the return list
-                returnList.add(contextItem.contexPath());
+                returnList.add(contextItem.contextPath());
             }
         }
         return returnList;

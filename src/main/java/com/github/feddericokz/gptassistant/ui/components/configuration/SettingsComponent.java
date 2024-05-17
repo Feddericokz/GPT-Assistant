@@ -19,6 +19,7 @@ public class SettingsComponent {
     private final JBTextField tokenThresholdTextField;
     private final JBTextField openIARequestTimeoutSeconds;
     private final JBTextField retrieveRunIntervalMillis;
+    private final AssistantsPanel assistantsPanel;
 
     public SettingsComponent(PluginSettings settings) {
         // We need a field for the API Key
@@ -38,11 +39,13 @@ public class SettingsComponent {
         retrieveRunIntervalMillis.setColumns(6);
 
         // And show the assistants we have.
-        JPanel assistantsPanel = new AssistantsPanel(settings);
+        assistantsPanel = new AssistantsPanel(settings);
 
         // I want a nice label that is a little bit separated from the rest.
         JBLabel assistantsLabel = new JBLabel("Assistants");
         assistantsLabel.setBorder(JBUI.Borders.empty(10));
+
+        JButton resetButton = getResetButton();
 
         mainPanel = FormBuilder.createFormBuilder()
                 .addComponent(getLabeledPanel("OpenAI API Key:", apiKeyTextField))
@@ -50,10 +53,31 @@ public class SettingsComponent {
                 .addComponent(getLabeledPanel("Token Threshold", tokenThresholdTextField))
                 .addComponent(getLabeledPanel("OpenIA Timeout (seconds)", openIARequestTimeoutSeconds))
                 .addComponent(getLabeledPanel("Retrieve Run Interval (milliseconds)", retrieveRunIntervalMillis))
+                .addComponent(resetButton)
                 .addSeparator(10)
                 .addLabeledComponent(assistantsLabel, assistantsPanel, 1, true)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
+    }
+
+    @NotNull
+    private JButton getResetButton() {
+        JButton resetButton = new JButton("Reset to Defaults");
+        resetButton.addActionListener(e -> {
+            // Reset all settings to their default values
+            PluginSettings.resetSettings();
+
+            // Update the UI components to reflect the reset settings
+            apiKeyTextField.setText("");
+            enableReformatProcessedCodeCheckBox.setSelected(true); // Assuming true is the default
+            tokenThresholdTextField.setText(""); // Assuming empty string resets to default in context of setting
+            openIARequestTimeoutSeconds.setText(""); // Assuming empty string resets to default
+            retrieveRunIntervalMillis.setText(""); // Assuming empty string resets to default
+
+            // Optionally, if there's a need to reload or refresh UI components that depend on these settings, do so here
+            assistantsPanel.reset();
+        });
+        return resetButton;
     }
 
     private JComponent getLabeledPanel(String label, JComponent component) {

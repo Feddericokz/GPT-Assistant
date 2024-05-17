@@ -23,7 +23,7 @@ public class ContextTab extends JPanel {
         int i = 0;
         for (ContextItem item : contextItems) {
             data[i][0] = item.itemType().toString();
-            data[i][1] = item.contexPath();
+            data[i][1] = item.contextPath();
             // Initializing placeholder for the "Remove" button, actual button will be added in cell rendering
             data[i][2] = "Remove";
             i++;
@@ -76,7 +76,7 @@ public class ContextTab extends JPanel {
         // To ensure model updates are done on the EDT (Event Dispatch Thread)
         SwingUtilities.invokeLater(() -> {
             DefaultTableModel model = (DefaultTableModel) contextTable.getModel(); // Casting to DefaultTableModel to use addRow method
-            model.addRow(new Object[]{item.itemType().toString(), item.contexPath()}); // Adding new item to the table
+            model.addRow(new Object[]{item.itemType().toString(), item.contextPath()}); // Adding new item to the table
         });
     }
 
