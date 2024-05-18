@@ -43,6 +43,40 @@ and set your API key.
 > Notice how I have to close the settings window and re-open it for the API to kick in, hopefully will be fixed in a later
 > release.
 
+## Configuration options
+
+These options can be found at <kbd>Settings</kbd> > <kbd>Tools</kbd> > <kbd>GPT Assistant Settings</kbd>
+
+| Configuration                        | Description                                                                                                                        |
+|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| OpenAI API Key                       | Required for authenticating with OpenAI services. Please enter a valid API key.                                                    |
+| Reformat processed code              | This configuration is enabled by default, but can be disabled in case it's not working as expected.                                |
+| Token Threshold                      | Defines a threshold after which the user will be asked for consent before making the request. Set 0 to disable asking for consent. |
+| OpenAI Timeout (seconds)             | Maximum time in seconds before a request to OpenAI times out.                                                                      |
+| Retrieve Run Interval (milliseconds) | Interval in milliseconds between checks for task completion.                                                                       |
+
+### Assistants panel
+
+![Assistants Panel](images/assistants_panel.png)
+
+In this panel, an assistant should have been already created for you. I think the prompt works pretty well out of the box,
+but us humans have a creative nature, so I left some room for customization of the prompt, along with the model it uses.
+
+More assistants could be created, with slightly different instructions customized for specific cases. For example,
+an assistant could be instructed to prefer one set of libraries over the other, try to enforce coding conventions and
+patterns that your project should follow, or anything you can think of really.
+
+> [!IMPORTANT]  
+> You should be careful not to break the response format of the assistant, since it expects a specific format.
+> If the plugin doesn't receive the response in this format, it won´t know how to handle the response.
+> Make sure you read it carefully and understand how it works, and then proceed to tweak behavior of the assistant.
+
+To make it short, this panel lets you manage assistants, you can:
+* Create new assistants.
+* Delete existing assistants.
+* Visualize information about existing assistants, such as the model and instructions.
+* Select an assistant to use for processing requests.
+
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 

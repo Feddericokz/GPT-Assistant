@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Button to reset settings.
 - Getting started documentation on README.md
+- Configuration options documentation on README.md
 
 ## [0.1.1] - 2024-05-16
 
