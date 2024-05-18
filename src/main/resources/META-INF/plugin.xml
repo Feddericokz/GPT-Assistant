@@ -8,6 +8,7 @@
 
     <extensionPoints>
         <extensionPoint name="importLanguageHandler" interface="com.github.feddericokz.gptassistant.actions.handlers.imports.ImportLanguageHandler"/>
+        <extensionPoint name="contextFinder" interface="com.github.feddericokz.gptassistant.context.ContextFinder"/>
     </extensionPoints>
 
     <depends optional="true" config-file="with-java-plugin.xml">com.intellij.modules.java</depends>

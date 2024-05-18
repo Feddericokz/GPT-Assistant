@@ -3,8 +3,8 @@ package com.github.feddericokz.gptassistant.ui.components.tool_window.log;
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowFactory;
+import com.intellij.openapi.application.ApplicationManager;
 
-import javax.swing.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public class ToolWindowLogger implements Logger {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
             String formattedMessage = formatLogMessage(message, logLevel);
-            SwingUtilities.invokeLater(() -> content.getLogTab().logMessage(formattedMessage, logLevel));
+            ApplicationManager.getApplication().invokeLater(() -> content.getLogTab().logMessage(formattedMessage, logLevel));
         }
     }
 
@@ -57,7 +57,7 @@ public class ToolWindowLogger implements Logger {
     }
 
     @Override
-    public void log(String message, String logLevel, Exception exception) {
+    public void log(String message, String logLevel, Throwable exception) {
         StringWriter sw = new StringWriter();
         exception.printStackTrace(new PrintWriter(sw));
         String exceptionAsString = sw.toString();
@@ -65,17 +65,17 @@ public class ToolWindowLogger implements Logger {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
             String formattedMessage = formatLogMessage(message + "\n" + exceptionAsString, logLevel);
-            SwingUtilities.invokeLater(() -> content.getLogTab().logMessage(formattedMessage, logLevel));
+            ApplicationManager.getApplication().invokeLater(() -> content.getLogTab().logMessage(formattedMessage, logLevel));
         }
     }
 
     @Override
-    public void warning(String message, Exception exception) {
+    public void warning(String message, Throwable exception) {
         log(message, "WARNING", exception);
     }
 
     @Override
-    public void error(String message, Exception exception) {
+    public void error(String message, Throwable exception) {
         log(message, "ERROR", exception);
     }
 

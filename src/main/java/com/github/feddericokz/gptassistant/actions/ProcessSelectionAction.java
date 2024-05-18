@@ -3,10 +3,10 @@ package com.github.feddericokz.gptassistant.actions;
 import com.github.feddericokz.gptassistant.actions.handlers.*;
 import com.github.feddericokz.gptassistant.actions.handlers.imports.ImportsResponseHandler;
 import com.github.feddericokz.gptassistant.common.Logger;
+import com.github.feddericokz.gptassistant.context.ContextFinder;
 import com.github.feddericokz.gptassistant.ui.components.context_selector.CheckboxListItem;
 import com.github.feddericokz.gptassistant.ui.components.context_selector.ContextFilesSelectorDialog;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
-import com.github.feddericokz.gptassistant.utils.RecursiveClassFinder;
 import com.github.feddericokz.gptassistant.utils.exceptions.UserCancelledException;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -15,10 +15,10 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -36,7 +36,10 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
 
     private static final Logger logger = ToolWindowLogger.getInstance(ProcessSelectionAction.class);
 
-    List<AssistantResponseHandler> handlers = new ArrayList<>();
+    private static final ExtensionPointName<ContextFinder> extensionPointName
+            = ExtensionPointName.create("com.github.feddericokz.gptassistant.contextFinder");
+
+    private final List<AssistantResponseHandler> handlers = new ArrayList<>();
 
     public ProcessSelectionAction() {
         handlers.add(new ReplaceSelectionResponseHandler());
@@ -55,7 +58,7 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
     public List<String> getMessagesForRequest(AnActionEvent e, String selection) throws UserCancelledException {
         logger.debug("getMessagesForRequest: Entry - processing request with selection: " + selection);
         // Need to get the name of the current class.
-        String currentFileUrl = getCurrentClassUrl(e);
+        String currentFileUrl = getCurrentFileUrl(e);
         String currentFileName = getCurrentFileName(e);
         logger.debug("getMessagesForRequest: Current class URL: " + currentFileUrl + ", class name: " + currentFileName);
 
@@ -85,7 +88,7 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         return messages;
     }
 
-    private String getCurrentClassUrl(AnActionEvent e) {
+    private String getCurrentFileUrl(AnActionEvent e) {
         PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
         if (psiFile == null) {
             throw new IllegalStateException("psiFile is null");
@@ -94,11 +97,8 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         if (editor == null) {
             throw new IllegalStateException("Editor is null");
         }
-        int offset = editor.getCaretModel().getOffset();
-        PsiElement elementAt = psiFile.findElementAt(offset);
 
-        // Assuming PsiFile represents the class if we're avoiding PsiClass usage.
-        return elementAt != null ? elementAt.getContainingFile().getVirtualFile().getUrl() : null;
+        return psiFile.getContainingFile().getVirtualFile().getUrl();
     }
 
     private String getCurrentFileName(AnActionEvent e) {
@@ -110,10 +110,17 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         if (editor == null) {
             throw new IllegalStateException("Editor is null");
         }
-        int offset = editor.getCaretModel().getOffset();
-        PsiElement elementAt = psiFile.findElementAt(offset);
 
-        return elementAt != null ? elementAt.getContainingFile().getVirtualFile().getName() : null;
+        for (ContextFinder contextFinder : extensionPointName.getExtensionList()) {
+            if (contextFinder.getLanguageIdentifierString().equals(psiFile.getLanguage().getDisplayName())) {
+                String fileName = contextFinder.getCurrentFileName(psiFile);
+                if (fileName != null && !fileName.isBlank()) {
+                    return fileName;
+                }
+            }
+        }
+
+        return psiFile.getContainingFile().getVirtualFile().getName();
     }
 
     public static List<String> getUserChosenContextFiles(Map<String, Map<String, String>> contextFilesMap, AnActionEvent e) throws UserCancelledException {
@@ -130,8 +137,6 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
                     .collect(Collectors.toList()));
             titles.add(entry.getKey());
         }
-
-        Project project = e.getRequiredData(CommonDataKeys.PROJECT);
 
         ContextFilesSelectorDialog dialog = new ContextFilesSelectorDialog(itemsLists, titles);
         dialog.show();
@@ -196,14 +201,19 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
                         element.getTextRange().getEndOffset() <= endOffset
         );
 
-        // Resolve classes from psiElements.
-        Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
+        return resolveFromPsiElements(psiFile, psiElements);
+    }
 
-        return psiClasses.stream()
-                .collect(Collectors.toMap(
-                        psiClass -> psiClass.getQualifiedName(),
-                        psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl()
-                ));
+    private static Map<String, String> resolveFromPsiElements(PsiFile psiFile, PsiElement[] psiElements) {
+        // Resolve classes from psiElements.
+        for (ContextFinder contextFinder : extensionPointName.getExtensionList()) {
+            if (contextFinder.getLanguageIdentifierString().equals(psiFile.getLanguage().getDisplayName())) {
+                return contextFinder.getContext(psiElements);
+            }
+        }
+
+        // TODO Let the user know that no handler was found.
+        return Collections.emptyMap();
     }
 
     private Map<String, String> getFileContextFilesMap(AnActionEvent e) {
@@ -227,13 +237,7 @@ public class ProcessSelectionAction extends AbstractAssistantAction {
         PsiElement[] psiElements = PsiTreeUtil.collectElements(psiFile, element -> true);
 
         // Resolve classes from psiElements.
-        Set<PsiClass> psiClasses = new RecursiveClassFinder().findClasses(psiElements);
-
-        return psiClasses.stream()
-                .collect(Collectors.toMap(
-                        psiClass -> psiClass.getQualifiedName(),
-                        psiClass -> psiClass.getContainingFile().getVirtualFile().getUrl()
-                ));
+        return resolveFromPsiElements(psiFile, psiElements);
     }
 
     @Override

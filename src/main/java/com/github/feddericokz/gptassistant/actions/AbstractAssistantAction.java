@@ -4,6 +4,7 @@ import com.github.feddericokz.gptassistant.actions.handlers.AssistantResponseHan
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
+import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.github.feddericokz.gptassistant.utils.TokenCalculator;
 import com.github.feddericokz.gptassistant.utils.exceptions.AssistantNotSelectedException;
 import com.github.feddericokz.gptassistant.utils.exceptions.UserCancelledException;
@@ -11,11 +12,13 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.theokanning.openai.runs.Run;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.github.feddericokz.gptassistant.notifications.Notifications.*;
@@ -64,13 +67,18 @@ public abstract class AbstractAssistantAction extends AnAction {
                         logger.debug("Assistant response received.");
 
                         // Now I need to hand this off to handlers to do their thing on the UI thread.
-                        SwingUtilities.invokeLater(() -> {
+                        ApplicationManager.getApplication().invokeLater(() -> {
                             getResponseHandlersList().forEach(assistantResponseHandler -> {
                                 try {
                                     assistantResponseHandler.handleResponse(e, assistantResponse);
-                                } catch (Exception ex) {
+                                } catch (Throwable ex) {
                                     logger.error("Error on response handler. "
                                             + assistantResponseHandler.getClass().getSimpleName(), ex);
+                                    if (assistantResponseHandler instanceof RequestInfoContentAware) {
+                                        ((RequestInfoContentAware) assistantResponseHandler)
+                                                .updateToolWindowContent(ex.getMessage() + " | Stack: "
+                                                        + Arrays.toString(ex.getStackTrace()));
+                                    }
                                 }
                             });
                         });

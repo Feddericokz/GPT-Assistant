@@ -11,9 +11,9 @@ public interface Logger {
 
     void error(String message);
 
-    void log(String message, String logLevel, Exception exception);
+    void log(String message, String logLevel, Throwable exception);
 
-    void warning(String message, Exception exception);
+    void warning(String message, Throwable exception);
 
-    void error(String message, Exception exception);
+    void error(String message, Throwable exception);
 }

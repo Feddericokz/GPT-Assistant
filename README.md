@@ -14,6 +14,9 @@ to replace selections of code following instructions in the comments. It can als
 it needs to, or if asked to do so.
 It gives manual control over what is sent as context for the assistant to understand your request.
 
+Idea was to bring inside the IDE, options to do better interact with GPT, instead of manually giving context to ChatGPT
+and waiting for the request, then copying it back to the IDE. Main functionality revolves around facilitating how to
+give context to a request, and updating code with the AI response.
 <!-- Plugin description end -->
 
 ## Installation
@@ -122,6 +125,44 @@ We can choose to send this global context as information when making request to 
 
 I just needed a place to dump logs that was easy for me to monitor, you probably don't care about this.
 Might be helpful to report an issue with the plugin.
+
+## Actions
+
+### Process selection Action
+
+![Process selection Action](images/process_selected_code.gif)
+
+This action is only present in the Editor context menu. It instructs the assistant to provide code to replace the 
+current selection following an instruction written in a code comment. 
+User instructions should be placed inside a nlp xml tag. Example:
+
+```java
+// <nlp> User instructions... </nlp>
+```
+
+Many instructions could be given at different parts of the code using many comments.
+
+> [!NOTE]
+> Instruction in comments are useful when you want to give many instructions at once, but for a single instruction it might
+> be better to just prompt it in a text before making the request. Will try to add this feature in  a later release.
+
+
+### Add to context Action
+
+![Add to context Action](images/add_to_context_action.gif)
+
+This action is only present in Project tree context menu. It allows adding files to the global assistant context. Supports
+adding any file and directory to the context. Many files could be selected at once.
+
+### Free prompt Action
+
+![Free prompt Action](images/free_prompt_action.gif)
+
+This action is present on both menu's. It lets you give instructions to the assistant outside the context of a selection.
+Right now the assistant can just replace code and create classes, so outside the context of a selection it can just create classes.
+
+> [!NOTE]
+> I plan to add more abilities to the assistant, at least to ask questions about classes in the context. 
 
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
