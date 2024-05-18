@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Getting started documentation on README.md
 - Configuration options documentation on README.md
 - Tool window documentation on README.md
+- Actions documentation on README.md
+- An error is displayed in Tool Window if any of the response handlers fail.
+
+### Fixed
+
+- PsiClass is no longer used in any class that is not loaded under the java optional dependency.
 
 ## [0.1.1] - 2024-05-16
 
