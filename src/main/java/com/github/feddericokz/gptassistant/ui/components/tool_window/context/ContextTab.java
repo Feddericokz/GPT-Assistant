@@ -2,6 +2,7 @@ package com.github.feddericokz.gptassistant.ui.components.tool_window.context;
 
 import com.github.feddericokz.gptassistant.configuration.PluginSettings;
 import com.github.feddericokz.gptassistant.context.ContextItem;
+import com.intellij.openapi.application.ApplicationManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -74,7 +75,7 @@ public class ContextTab extends JPanel {
 
     public void addContextItemToTable(ContextItem item) {
         // To ensure model updates are done on the EDT (Event Dispatch Thread)
-        SwingUtilities.invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             DefaultTableModel model = (DefaultTableModel) contextTable.getModel(); // Casting to DefaultTableModel to use addRow method
             model.addRow(new Object[]{item.itemType().toString(), item.contextPath()}); // Adding new item to the table
         });

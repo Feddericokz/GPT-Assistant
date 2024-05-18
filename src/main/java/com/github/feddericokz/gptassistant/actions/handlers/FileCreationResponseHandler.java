@@ -4,7 +4,6 @@ import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowC
 import com.github.feddericokz.gptassistant.ui.components.tool_window.request_info.RequestInfoContentAware;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.impl.stores.IProjectStore;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,11 +41,7 @@ public class FileCreationResponseHandler implements AssistantResponseHandler, Re
                             Path parentPath = path.getParent();
                             Path createFilePath;
 
-                            // Retrieve the project's base directory from the AnActionEvent object
-                            IProjectStore projectStore = Objects.requireNonNull(e.getProject())
-                                    .getComponent(IProjectStore.class);
-
-                            Path projectBasePath = projectStore.getProjectBasePath();
+                            Path projectBasePath = Path.of(Objects.requireNonNull(Objects.requireNonNull(e.getProject()).getBasePath()));
 
                             if (parentPath != null) {
                                 parentPath = projectBasePath.resolve(parentPath);

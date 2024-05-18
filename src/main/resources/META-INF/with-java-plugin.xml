@@ -1,6 +1,6 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.github.feddericokz.gptassistant">
         <importLanguageHandler implementation="com.github.feddericokz.gptassistant.actions.handlers.imports.JavaImportLanguageHandler"/>
-        <importLanguageHandler implementation="com.github.feddericokz.gptassistant.actions.handlers.imports.PHPImportLanguageHandler"/>
+        <contextFinder implementation="com.github.feddericokz.gptassistant.context.JavaContextFinder"/>
     </extensions>
 </idea-plugin>

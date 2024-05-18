@@ -2,8 +2,7 @@ package com.github.feddericokz.gptassistant.ui.components.tool_window.request_in
 
 import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowContent;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.ToolWindowFactory;
-
-import javax.swing.*;
+import com.intellij.openapi.application.ApplicationManager;
 
 public interface RequestInfoContentAware {
 
@@ -12,7 +11,7 @@ public interface RequestInfoContentAware {
     default void updateToolWindowContent(String update) {
         ToolWindowContent content = ToolWindowFactory.getToolWindowContent();
         if (content != null) {
-            SwingUtilities.invokeLater(internalUpdateContent(content, update));
+            ApplicationManager.getApplication().invokeLater(internalUpdateContent(content, update));
         }
     }
 

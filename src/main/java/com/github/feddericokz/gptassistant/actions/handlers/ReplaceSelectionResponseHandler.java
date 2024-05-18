@@ -28,9 +28,12 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
 
     @Override
     public void handleResponse(@NotNull AnActionEvent e, @NotNull List<String> assistantResponse) throws InterruptedException, InvocationTargetException {
-        updateSelection(e, getUpdateSelection(assistantResponse));
-        updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "code-replacement"));
-        reformatCodeIfEnabled(e);
+        String updateSelection = getUpdateSelection(assistantResponse);
+        if (!updateSelection.isBlank()) {
+            updateSelection(e, updateSelection);
+            reformatCodeIfEnabled(e);
+            updateToolWindowContent(AssistantResponseHandler.getXmlTagFromResponse(assistantResponse, "code-replacement"));
+        }
     }
 
     @Override
@@ -68,7 +71,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         return PluginSettings.getInstance().getEnableReformatProcessedCode();
     }
 
-    private static void reformatSelection(AnActionEvent e) throws InterruptedException, InvocationTargetException {
+    private static void reformatSelection(AnActionEvent e) {
         // Get needed objects to work with.
         Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
         Document document = editor.getDocument();
@@ -76,7 +79,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         SelectionModel selection = editor.getSelectionModel();
         PsiFile file = Objects.requireNonNull(PsiDocumentManager.getInstance(project).getPsiFile(document));
 
-        ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeAndWait(() -> {
             // Ensure the document is committed
             PsiDocumentManager.getInstance(project).commitDocument(document);
         }, ModalityState.defaultModalityState());
@@ -87,7 +90,7 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         // Get the CodeStyleManager instance
         CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
 
-        ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeAndWait(() -> {
             // Reformat the specified range of the document. Wrap the document change in a WriteCommandAction
             WriteCommandAction.runWriteCommandAction(project, () ->
                     codeStyleManager.reformatText(file, rangeToReformat.getStartOffset(), rangeToReformat.getEndOffset())
@@ -95,21 +98,19 @@ public class ReplaceSelectionResponseHandler implements AssistantResponseHandler
         }, ModalityState.defaultModalityState());
     }
 
-    public static void updateSelection(AnActionEvent e, String updateSelection) throws InterruptedException, InvocationTargetException {
-        if (updateSelection != null) {
-            String sanitizedSelection = sanitizeCode(updateSelection);
-            // Get needed objects to work with.
-            Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-            SelectionModel selection = editor.getSelectionModel();
-            Document document = editor.getDocument();
+    private static void updateSelection(AnActionEvent e, String updateSelection) throws InterruptedException, InvocationTargetException {
+        String sanitizedSelection = sanitizeCode(updateSelection);
+        // Get needed objects to work with.
+        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+        SelectionModel selection = editor.getSelectionModel();
+        Document document = editor.getDocument();
 
-            ApplicationManager.getApplication().invokeLater(() -> {
-                // Wrap the document change in a WriteCommandAction
-                WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
-                        document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
-                );
-            }, ModalityState.defaultModalityState());
-        }
+        ApplicationManager.getApplication().invokeLater(() -> {
+            // Wrap the document change in a WriteCommandAction
+            WriteCommandAction.runWriteCommandAction(e.getProject(), () ->
+                    document.replaceString(selection.getSelectionStart(), selection.getSelectionEnd(), sanitizedSelection)
+            );
+        }, ModalityState.defaultModalityState());
     }
 
 

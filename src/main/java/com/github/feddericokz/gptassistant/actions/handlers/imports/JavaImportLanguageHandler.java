@@ -3,6 +3,7 @@ package com.github.feddericokz.gptassistant.actions.handlers.imports;
 import com.github.feddericokz.gptassistant.common.Logger;
 import com.github.feddericokz.gptassistant.ui.components.tool_window.log.ToolWindowLogger;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -24,7 +25,9 @@ public class JavaImportLanguageHandler implements ImportLanguageHandler {
         }
 
         // Ensure the document we're trying to modify is committed.
-        commitDocument(javaFile);
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+            commitDocument(javaFile);
+        });
 
         // Check if the import statement already exists
         if (importStatementAlreadyExists(javaFile, importIdentifier)) {
