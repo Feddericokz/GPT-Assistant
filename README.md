@@ -77,6 +77,52 @@ To make it short, this panel lets you manage assistants, you can:
 * Visualize information about existing assistants, such as the model and instructions.
 * Select an assistant to use for processing requests.
 
+## Assistant Tool Window
+
+This tool window has 3 tabs to mostly display useful information, you can interact with the Context one tho.
+
+### Request Info
+
+![Request Info Tab](images/request_info_tab.png)
+
+This tab displays information to help us understand what the assistant did. Basically to debug the AI behavior.
+
+#### Request Steps
+
+The AI is asked to reason the steps it has to perform to solve the task given by the user. They're displayed in this tab.
+
+#### User Request
+
+The AI is asked to report what it understood the user request was. The statement is displayed in this tab.
+
+#### Imports
+
+If the AI determines an import needs to be added, it will be displayed here.
+
+#### Code Replacement
+
+The AI is given the ability to replace selected code. The code replacement will be displayed here.
+
+#### File Creation
+
+The AI is given the ability to create one or more files. They will be displayed here.
+
+### Context
+
+![Context Tab](images/context_tab.png)
+
+There is a global context, to which we can add files using the project tree. Files in this context are displayed here, and
+they also can be removed from the context.
+
+We can choose to send this global context as information when making request to the assistant.
+
+### Logs
+
+![Logs Tab](images/logs_tab.png)
+
+I just needed a place to dump logs that was easy for me to monitor, you probably don't care about this.
+Might be helpful to report an issue with the plugin.
+
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
